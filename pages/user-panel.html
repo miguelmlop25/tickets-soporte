@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Usuario · Tickets de Soporte</title>
+
+  <!-- Estilos: primero variables/base globales, luego estilos del panel de User -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard-user.css" />
+
+  <!--
+    Configuración pública de Supabase inyectada por el build de Netlify.
+    Debe cargarse ANTES que cualquier módulo que dependa de window.__SUPABASE_URL__.
+  -->
+  <script src="../js/env.js"></script>
+</head>
+
+<body>
+  <!-- Layout principal del dashboard: sidebar + header + main -->
+  <div class="dashboard">
+
+    <!-- =========================================================
+         BARRA LATERAL DE NAVEGACIÓN
+         ========================================================= -->
+    <aside class="dashboard__sidebar">
+      <div class="dashboard__brand">Tickets de Soporte</div>
+
+      <!-- La navegación alterna la visibilidad de las secciones del main.
+           user-panel.js gestiona el estado activo y el atributo [hidden]. -->
+      <nav aria-label="Navegación principal del panel de usuario">
+        <button
+          type="button"
+          class="dashboard__nav-item dashboard__nav-item--active"
+          id="nav-my-tickets"
+          data-section="section-my-tickets"
+          aria-current="page"
+        >
+          Mis Tickets
+        </button>
+        <button
+          type="button"
+          class="dashboard__nav-item"
+          id="nav-new-ticket"
+          data-section="section-new-ticket"
+        >
+          Nuevo Ticket
+        </button>
+      </nav>
+    </aside>
+
+    <!-- =========================================================
+         HEADER: título + campana de notificaciones + usuario
+         ========================================================= -->
+    <header class="dashboard__header">
+      <h1 class="dashboard__header-title">Panel de Usuario</h1>
+
+      <div class="dashboard__header-actions">
+        <!-- Componente de notificaciones (campana + badge + dropdown).
+             notifications.js llena la lista y actualiza el badge. -->
+        <div class="notifications">
+          <button
+            type="button"
+            class="notifications__bell"
+            id="notifications-bell"
+            aria-label="Notificaciones"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="notifications-dropdown"
+          >
+            <span aria-hidden="true">🔔</span>
+            <span
+              class="notifications__badge"
+              id="notifications-badge"
+              data-count="0"
+              aria-live="polite"
+            >0</span>
+          </button>
+
+          <div
+            class="notifications__dropdown"
+            id="notifications-dropdown"
+            role="region"
+            aria-label="Lista de notificaciones"
+            hidden
+          >
+            <div class="notifications__header">Notificaciones</div>
+            <div class="notifications__list" id="notifications-list">
+              <!-- Las notificaciones se inyectan dinámicamente por notifications.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Nombre del usuario autenticado, poblado por user-panel.js -->
+        <span class="dashboard__user-name" id="current-user-name"></span>
+
+        <button type="button" class="btn btn-secondary btn-sm" id="logout-btn">
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         CONTENIDO PRINCIPAL
+         ========================================================= -->
+    <main class="dashboard__main">
+
+      <!-- ---------------------------------------------------------
+           SECCIÓN: MIS TICKETS
+           --------------------------------------------------------- -->
+      <section
+        class="dashboard__section"
+        id="section-my-tickets"
+        aria-labelledby="section-my-tickets-title"
+      >
+        <h2 class="dashboard__section-title" id="section-my-tickets-title">Mis Tickets</h2>
+
+        <!-- Formulario de filtros: Status, Estado, Categoría, Rango de fechas -->
+        <form class="filters" id="ticket-filters" aria-label="Filtros de tickets">
+          <div class="filters__field">
+            <label class="form-label" for="filter-status">Status</label>
+            <select class="form-control" id="filter-status" name="status">
+              <option value="">Todos</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+
+          <div class="filters__field">
+            <label class="form-label" for="filter-estado">Estado</label>
+            <select class="form-control" id="filter-estado" name="estado">
+              <option value="">Todos</option>
+              <option value="TICKET PENDIENTE">TICKET PENDIENTE</option>
+              <option value="TICKET ACEPTADO">TICKET ACEPTADO</option>
+              <option value="TICKET RESUELTO">TICKET RESUELTO</option>
+            </select>
+          </div>
+
+          <div class="filters__field">
+            <label class="form-label" for="filter-categoria">Categoría</label>
+            <select class="form-control" id="filter-categoria" name="categoria">
+              <option value="">Todas</option>
+              <option value="SOFTWARE">SOFTWARE</option>
+              <option value="HARDWARE">HARDWARE</option>
+              <option value="CONFIGURACIONES">CONFIGURACIONES</option>
+              <option value="SEGURIDAD">SEGURIDAD</option>
+              <option value="TELECOMUNICACIONES">TELECOMUNICACIONES</option>
+            </select>
+          </div>
+
+          <div class="filters__field">
+            <label class="form-label" for="filter-fecha-desde">Fecha desde</label>
+            <input class="form-control" type="date" id="filter-fecha-desde" name="fecha_desde" />
+          </div>
+
+          <div class="filters__field">
+            <label class="form-label" for="filter-fecha-hasta">Fecha hasta</label>
+            <input class="form-control" type="date" id="filter-fecha-hasta" name="fecha_hasta" />
+          </div>
+
+          <div class="filters__actions">
+            <button type="submit" class="btn btn-primary btn-sm" id="apply-filters-btn">
+              Aplicar filtros
+            </button>
+            <button type="reset" class="btn btn-secondary btn-sm" id="clear-filters-btn">
+              Limpiar
+            </button>
+          </div>
+        </form>
+
+        <!-- Tabla de tickets del usuario. El tbody se llena por user-panel.js. -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <caption class="u-visually-hidden">Listado de mis tickets de soporte</caption>
+            <thead>
+              <tr>
+                <th scope="col">SSP-XXXX</th>
+                <th scope="col">Área</th>
+                <th scope="col">Categoría</th>
+                <th scope="col">Status</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fecha creación</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tickets-table-body">
+              <!-- Filas de tickets inyectadas dinámicamente por user-panel.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mensaje mostrado cuando ningún ticket coincide con los filtros -->
+        <p class="no-results" id="tickets-no-results" hidden>
+          No se encontraron tickets que coincidan con los filtros aplicados.
+        </p>
+      </section>
+
+      <!-- ---------------------------------------------------------
+           SECCIÓN: NUEVO TICKET
+           --------------------------------------------------------- -->
+      <section
+        class="dashboard__section"
+        id="section-new-ticket"
+        aria-labelledby="section-new-ticket-title"
+        hidden
+      >
+        <h2 class="dashboard__section-title" id="section-new-ticket-title">Nuevo Ticket</h2>
+
+        <!-- Formulario de creación de ticket. user-panel.js lo conecta con createTicket(). -->
+        <form class="ticket-form" id="new-ticket-form" novalidate>
+          <div class="ticket-form__grid">
+
+            <!-- Área -->
+            <div class="form-group">
+              <label class="form-label" for="ticket-area">Área <span aria-hidden="true">*</span></label>
+              <select class="form-control" id="ticket-area" name="area" required>
+                <option value="">Seleccione un área</option>
+                <option value="Administracion">Administracion</option>
+                <option value="Auditoria">Auditoria</option>
+                <option value="Auditoria IMSS">Auditoria IMSS</option>
+                <option value="BPO Others">BPO Others</option>
+                <option value="Consultoria">Consultoria</option>
+                <option value="Contabilidad">Contabilidad</option>
+                <option value="Eduacion Continua">Eduacion Continua</option>
+                <option value="General">General</option>
+                <option value="Impuestos">Impuestos</option>
+                <option value="Mercadotecnia">Mercadotecnia</option>
+                <option value="Nominas">Nominas</option>
+                <option value="Precios T">Precios T</option>
+                <option value="RH">RH</option>
+                <option value="Sistemas TI">Sistemas TI</option>
+                <option value="SOCIOS">SOCIOS</option>
+              </select>
+              <span class="form-error" id="error-area" role="alert"></span>
+            </div>
+
+            <!-- Tipo de asistencia -->
+            <div class="form-group">
+              <label class="form-label" for="ticket-tipo-asistencia">Tipo de asistencia <span aria-hidden="true">*</span></label>
+              <select class="form-control" id="ticket-tipo-asistencia" name="tipo_asistencia" required>
+                <option value="">Seleccione un tipo</option>
+                <option value="Asistencia remota">Asistencia remota</option>
+                <option value="Correo">Correo</option>
+                <option value="Llamada">Llamada</option>
+                <option value="Presencial">Presencial</option>
+              </select>
+              <span class="form-error" id="error-tipo-asistencia" role="alert"></span>
+            </div>
+
+            <!-- Categoría -->
+            <div class="form-group">
+              <label class="form-label" for="ticket-categoria">Categoría <span aria-hidden="true">*</span></label>
+              <select class="form-control" id="ticket-categoria" name="categoria" required>
+                <option value="">Seleccione una categoría</option>
+                <option value="SOFTWARE">SOFTWARE</option>
+                <option value="HARDWARE">HARDWARE</option>
+                <option value="CONFIGURACIONES">CONFIGURACIONES</option>
+                <option value="SEGURIDAD">SEGURIDAD</option>
+                <option value="TELECOMUNICACIONES">TELECOMUNICACIONES</option>
+              </select>
+              <span class="form-error" id="error-categoria" role="alert"></span>
+            </div>
+
+            <!-- Subcategoría: se puebla dinámicamente al seleccionar una categoría.
+                 Deshabilitada hasta que exista una categoría seleccionada. -->
+            <div class="form-group">
+              <label class="form-label" for="ticket-subcategoria">Subcategoría <span aria-hidden="true">*</span></label>
+              <select class="form-control" id="ticket-subcategoria" name="subcategoria" required disabled>
+                <option value="">Seleccione primero una categoría</option>
+              </select>
+              <span class="form-error" id="error-subcategoria" role="alert"></span>
+            </div>
+
+            <!-- Agente asignado (opcional). Poblado dinámicamente por user-panel.js. -->
+            <div class="form-group">
+              <label class="form-label" for="ticket-agente">Agente asignado (opcional)</label>
+              <select class="form-control" id="ticket-agente" name="agente_asignado">
+                <option value="">Sin asignar</option>
+              </select>
+              <span class="form-error" id="error-agente" role="alert"></span>
+            </div>
+
+            <!-- Descripción del problema (campo de ancho completo, máx. 1000 caracteres) -->
+            <div class="form-group form-group--full">
+              <label class="form-label" for="ticket-descripcion">Descripción del problema <span aria-hidden="true">*</span></label>
+              <textarea
+                class="form-control"
+                id="ticket-descripcion"
+                name="descripcion"
+                required
+                maxlength="1000"
+                aria-describedby="descripcion-counter"
+              ></textarea>
+              <span class="char-counter" id="descripcion-counter" aria-live="polite">0 / 1000</span>
+              <span class="form-error" id="error-descripcion" role="alert"></span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="create-ticket-btn">
+            Crear ticket
+          </button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- =========================================================
+       MODAL: DETALLE DE TICKET
+       ========================================================= -->
+  <div
+    class="modal-overlay"
+    id="ticket-detail-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ticket-detail-title"
+    hidden
+  >
+    <div class="modal">
+      <div class="modal__header">
+        <h3 id="ticket-detail-title">Detalle del ticket</h3>
+        <button
+          type="button"
+          class="modal__close"
+          id="ticket-detail-close"
+          aria-label="Cerrar detalle"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <!-- Datos generales del ticket, poblados por user-panel.js -->
+        <div id="ticket-detail-body">
+          <!-- Contenido dinámico: número, área, categoría, subcategoría, descripción, etc. -->
+        </div>
+
+        <!-- Historial de cambios de estado: fecha/hora y rol del actor -->
+        <div class="ticket-history">
+          <h4>Historial de cambios de estado</h4>
+          <div id="ticket-history-list">
+            <!-- Elementos .ticket-history__item inyectados por user-panel.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    Orquestación del panel de usuario (tarea 19.2).
+    Se carga como módulo ES; env.js ya está disponible en window.
+    No se usan scripts inline por la Content Security Policy.
+  -->
+  <script type="module" src="../js/pages/user-panel.js"></script>
+</body>
+</html>

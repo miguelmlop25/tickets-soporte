@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tickets de Soporte — Soluciones Tenería</title>
+
+  <!--
+    Hoja de estilos: main.css primero (variables globales, reset, utilidades)
+    y auth.css después (estilos específicos de login y registro).
+  -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+
+  <!--
+    Configuración pública de Supabase.
+    js/env.js es generado por el proceso de build de Netlify (scripts/inject-env.js)
+    a partir de las variables de entorno SUPABASE_URL y SUPABASE_ANON_KEY.
+    Debe cargarse como script clásico ANTES de cualquier módulo, porque js/config.js
+    (importado por los módulos de autenticación) lee window.__SUPABASE_URL__ y
+    window.__SUPABASE_ANON_KEY__ durante su inicialización.
+    Este archivo NO se versiona (está en .gitignore) y NO contiene secretos en el fuente.
+  -->
+  <script src="js/env.js"></script>
+
+  <!--
+    Orquestación de la página de login como ES Module. La CSP del proyecto no
+    permite scripts inline (script-src 'self' + CDNs), por lo que toda la lógica
+    vive en js/pages/login-page.js.
+  -->
+  <script type="module" src="js/pages/login-page.js"></script>
+</head>
+<body class="auth-page">
+  <main class="auth-card" aria-labelledby="auth-title">
+    <!-- Encabezado corporativo -->
+    <header class="auth-header">
+      <h1 id="auth-title" class="auth-header__title">Tickets de Soporte</h1>
+      <p class="auth-header__subtitle">Soluciones Tenería</p>
+    </header>
+
+    <!--
+      Contenedor para mensajes globales (por ejemplo, sesión expirada enviada por
+      session.js mediante el parámetro de query "message"). Se muestra vía JS.
+    -->
+    <div
+      id="global-message"
+      class="alert alert-info"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></div>
+
+    <!--
+      PASO 1: selección de rol.
+      Tres botones claramente diferenciados (Requisitos 2.2, 11.1).
+    -->
+    <section id="role-selection" aria-label="Selección de rol de acceso">
+      <p class="u-text-center u-text-muted u-text-sm">
+        Selecciona tu tipo de acceso para continuar
+      </p>
+      <div class="role-selector">
+        <button
+          type="button"
+          class="role-selector__btn"
+          data-role="User"
+        >
+          <span class="role-selector__icon" aria-hidden="true">👤</span>
+          SOY USUARIO
+        </button>
+        <button
+          type="button"
+          class="role-selector__btn"
+          data-role="Agent"
+        >
+          <span class="role-selector__icon" aria-hidden="true">🛠️</span>
+          SOY AGENTE
+        </button>
+        <button
+          type="button"
+          class="role-selector__btn"
+          data-role="Admin"
+        >
+          <span class="role-selector__icon" aria-hidden="true">🔑</span>
+          SOY ADMINISTRADOR
+        </button>
+      </div>
+    </section>
+
+    <!--
+      PASO 2: área de autenticación (login/registro).
+      Permanece oculta hasta que se selecciona un rol. login-page.js la puebla
+      y gestiona la visibilidad de pestañas y paneles según el rol elegido.
+    -->
+    <section id="auth-area" aria-label="Formularios de acceso" hidden>
+      <!-- Botón para regresar a la selección de rol -->
+      <button type="button" class="auth-back" data-action="back">
+        &larr; Cambiar tipo de acceso
+      </button>
+
+      <!-- Título dinámico con el rol seleccionado -->
+      <h2 id="auth-area-title" class="u-text-center"></h2>
+
+      <!--
+        Pestañas Iniciar Sesión / Registrarse. Solo se muestran para User y Agent
+        (Requisito 2.3). Para Admin se ocultan (Requisitos 2.4, 11.6).
+      -->
+      <div id="auth-tabs" class="auth-tabs" role="tablist" hidden>
+        <button
+          type="button"
+          class="auth-tabs__tab auth-tabs__tab--active"
+          role="tab"
+          data-tab="login"
+          aria-selected="true"
+        >
+          Iniciar Sesión
+        </button>
+        <button
+          type="button"
+          class="auth-tabs__tab"
+          role="tab"
+          data-tab="register"
+          aria-selected="false"
+        >
+          Registrarse
+        </button>
+      </div>
+
+      <!--
+        Panel de inicio de sesión. El formulario concreto es generado por
+        renderLoginForm(role) de js/auth/login.js e inyectado aquí por login-page.js.
+      -->
+      <div id="login-panel" class="auth-panel" role="tabpanel">
+        <div id="login-form-container"></div>
+      </div>
+
+      <!--
+        Panel de registro (solo User/Agent). Formulario estático con los campos
+        del Requisito 11.2: Nombre completo, Correo corporativo, Contraseña y
+        Confirmar contraseña.
+      -->
+      <div id="register-panel" class="auth-panel" role="tabpanel" hidden>
+        <form id="register-form" class="auth-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="register-fullname">Nombre completo</label>
+            <input
+              type="text"
+              id="register-fullname"
+              name="fullName"
+              class="form-control"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-email">Correo corporativo</label>
+            <input
+              type="email"
+              id="register-email"
+              name="email"
+              class="form-control"
+              autocomplete="email"
+              placeholder="usuario@solucionesteneria.com"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-password">Contraseña</label>
+            <input
+              type="password"
+              id="register-password"
+              name="password"
+              class="form-control"
+              autocomplete="new-password"
+              required
+            />
+            <!-- Recordatorio de los requisitos de seguridad de la contraseña -->
+            <ul class="password-requirements">
+              <li>Mínimo 8 caracteres</li>
+              <li>Al menos una letra minúscula</li>
+              <li>Al menos una letra mayúscula</li>
+              <li>Al menos un dígito</li>
+              <li>Al menos un carácter especial</li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-confirm-password">
+              Confirmar contraseña
+            </label>
+            <input
+              type="password"
+              id="register-confirm-password"
+              name="confirmPassword"
+              class="form-control"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+          <!-- Zona de mensajes de error/éxito del registro -->
+          <div
+            id="register-message"
+            class="alert"
+            role="alert"
+            aria-live="assertive"
+            hidden
+          ></div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            Crear cuenta
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

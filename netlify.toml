@@ -1,0 +1,66 @@
+# Configuración de despliegue en Netlify — Sistema de Tickets de Soporte
+# Dominio autorizado: https://ticketsoportest.netlify.app
+#
+# Responsabilidades de este archivo:
+#   1. Ejecutar el script de build que inyecta las variables de entorno de
+#      Netlify (SUPABASE_URL y SUPABASE_ANON_KEY) en el frontend generando
+#      un archivo env.js. Los secretos NUNCA se escriben en el código fuente.
+#   2. Aplicar los headers de seguridad (CSP, HSTS, anti-clickjacking, etc.)
+#      a todas las respuestas del sitio.
+
+[build]
+  # El directorio raíz del proyecto es la carpeta publicada tal cual (sitio estático).
+  publish = "."
+  # El script de build lee las variables de entorno de Netlify y genera js/env.js
+  # con window.__SUPABASE_URL__ y window.__SUPABASE_ANON_KEY__.
+  command = "node scripts/inject-env.js"
+
+# Variables de entorno requeridas en el panel de Netlify (Site settings > Environment).
+# NO se definen aquí sus valores: se configuran de forma segura en Netlify.
+#   - SUPABASE_URL       : URL del proyecto Supabase (https://<ref>.supabase.co)
+#   - SUPABASE_ANON_KEY  : clave pública anónima de Supabase
+#
+# Estas claves solo se inyectan en tiempo de build mediante scripts/inject-env.js;
+# nunca deben escribirse directamente en archivos HTML o JS versionados.
+
+# ---------------------------------------------------------------------------
+# Headers de seguridad aplicados a todas las rutas
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # Content Security Policy: restringe los orígenes desde los que se pueden
+    # cargar recursos, mitigando XSS e inyección de scripts no autorizados.
+    #   - default-src 'self'      : por defecto, solo recursos del propio dominio.
+    #   - script-src              : scripts propios + CDNs de Supabase (jsdelivr) y jsPDF (cdnjs).
+    #   - connect-src             : llamadas fetch/WebSocket solo al propio dominio y a Supabase.
+    #   - style-src               : estilos propios; 'unsafe-inline' requerido por estilos embebidos.
+    #   - frame-ancestors 'none'  : impide que el sitio se embeba en iframes (anti-clickjacking).
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self'
+        https://cdn.jsdelivr.net
+        https://cdnjs.cloudflare.com;
+      connect-src 'self'
+        https://*.supabase.co
+        wss://*.supabase.co;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data:;
+      font-src 'self';
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+    # Refuerza la protección contra clickjacking en navegadores antiguos.
+    X-Frame-Options = "DENY"
+
+    # Evita que el navegador infiera (sniff) el tipo MIME de las respuestas.
+    X-Content-Type-Options = "nosniff"
+
+    # Controla la información del referer enviada en las peticiones salientes.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Fuerza HTTPS durante 2 años, incluyendo subdominios (HSTS con preload).
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"

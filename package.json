@@ -1,0 +1,17 @@
+{
+  "name": "k-tickets-soporte",
+  "version": "1.0.0",
+  "description": "Sistema de gestión de tickets de soporte técnico — Soluciones Tenería",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "test:coverage": "vitest --coverage"
+  },
+  "devDependencies": {
+    "vitest": "2.2.5",
+    "fast-check": "3.22.0",
+    "@vitest/coverage-v8": "2.2.5"
+  }
+}

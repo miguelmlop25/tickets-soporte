@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<!--
+  agent-panel.html — Panel de Agente (Agent)
+  Soluciones Tenería
+
+  Estructura estática del panel del equipo de soporte. Toda la lógica de
+  orquestación (carga de tickets, aceptar, resolver, notificaciones y control de
+  sesión) reside en js/pages/agent-panel.js (tarea 20.2), enlazado como módulo
+  ES al final del documento. No se incluyen scripts inline para cumplir con la
+  Content Security Policy (script-src 'self').
+
+  Rutas relativas con ../ porque el archivo vive en el directorio pages/.
+-->
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Agente — Soporte Tenería</title>
+
+    <!--
+      Orden de hojas de estilo:
+      1. main.css            → variables, reset y componentes compartidos.
+      2. dashboard-user.css  → layout base del dashboard reutilizado por roles.
+      3. dashboard-agent.css → estilos específicos del panel de Agent.
+    -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/dashboard-user.css" />
+    <link rel="stylesheet" href="../css/dashboard-agent.css" />
+
+    <!--
+      Configuración pública de Supabase inyectada en tiempo de build de Netlify
+      (scripts/inject-env.js). Debe cargarse ANTES de cualquier módulo que use
+      el cliente Supabase. Nunca contiene secretos versionados en el repositorio.
+    -->
+    <script src="../js/env.js"></script>
+  </head>
+
+  <body>
+    <div class="dashboard">
+      <!-- ===================================================================
+           BARRA LATERAL DE NAVEGACIÓN
+           =================================================================== -->
+      <aside class="dashboard__sidebar" aria-label="Navegación principal">
+        <div class="dashboard__brand">Soporte Tenería</div>
+        <nav aria-label="Secciones del panel de agente">
+          <a
+            href="#queue-section"
+            class="dashboard__nav-item dashboard__nav-item--active"
+            id="nav-queue"
+            aria-current="page"
+          >
+            Cola de Tickets
+          </a>
+        </nav>
+      </aside>
+
+      <!-- ===================================================================
+           ENCABEZADO SUPERIOR (título + acciones + campana)
+           =================================================================== -->
+      <header class="dashboard__header">
+        <h1 class="dashboard__header-title">Cola de Tickets</h1>
+
+        <div class="dashboard__header-actions">
+          <!-- Nombre del Agent autenticado; lo completa agent-panel.js -->
+          <span class="dashboard__user-name" id="agent-name"></span>
+
+          <!-- Componente de notificaciones (campana + badge + dropdown).
+               Los selectores .notifications__badge/__dropdown/__list son los
+               que consume js/modules/notifications.js. -->
+          <div class="notifications" id="notifications">
+            <button
+              type="button"
+              class="notifications__bell"
+              id="notifications-bell"
+              aria-label="Notificaciones"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="notifications-dropdown"
+            >
+              <span aria-hidden="true">&#128276;</span>
+              <span
+                class="notifications__badge"
+                id="notifications-badge"
+                data-count="0"
+                aria-live="polite"
+                hidden
+              ></span>
+            </button>
+
+            <div
+              class="notifications__dropdown"
+              id="notifications-dropdown"
+              role="region"
+              aria-label="Lista de notificaciones"
+              hidden
+            >
+              <div class="notifications__header">Notificaciones</div>
+              <ul class="notifications__list" id="notifications-list"></ul>
+            </div>
+          </div>
+
+          <!-- Cierre de sesión; el manejador se registra en agent-panel.js -->
+          <button type="button" class="btn btn-secondary btn-sm" id="logout-btn">
+            Cerrar sesión
+          </button>
+        </div>
+      </header>
+
+      <!-- ===================================================================
+           CONTENIDO PRINCIPAL
+           =================================================================== -->
+      <main class="dashboard__main">
+        <!-- ---------------------------------------------------------------
+             SECCIÓN: COLA DE TICKETS
+             Muestra los tickets asignados al Agent y los tickets sin asignar,
+             diferenciados visualmente mediante clases de fila y una etiqueta
+             de asignación (.assignment-tag).
+             --------------------------------------------------------------- -->
+        <section
+          class="dashboard__section"
+          id="queue-section"
+          aria-labelledby="queue-title"
+        >
+          <h2 class="dashboard__section-title" id="queue-title">Cola de Tickets</h2>
+
+          <!-- Contenedor de mensajes de feedback global de la sección
+               (errores de carga, confirmaciones). Lo gestiona agent-panel.js. -->
+          <div id="queue-feedback" role="status" aria-live="polite"></div>
+
+          <!-- Tabla de tickets. El cuerpo se rellena dinámicamente:
+               cada fila lleva .ticket-row--assigned o .ticket-row--unassigned
+               según corresponda, y una .assignment-tag como diferenciador. -->
+          <div class="table-wrapper">
+            <table class="data-table" id="tickets-table">
+              <caption class="u-visually-hidden">
+                Tickets asignados al agente y tickets sin asignar
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Ticket</th>
+                  <th scope="col">Asignación</th>
+                  <th scope="col">Área</th>
+                  <th scope="col">Categoría</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Fecha creación</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <!-- agent-panel.js inserta las filas de tickets aquí. -->
+              <tbody id="tickets-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Mensaje mostrado cuando no hay tickets en la cola. -->
+          <p class="no-results" id="tickets-empty" hidden>
+            No hay tickets en la cola por el momento.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <!-- =====================================================================
+         MODAL: DETALLE / RESOLUCIÓN DE TICKET
+         Panel emergente con los datos del ticket, el botón "ACEPTAR" (visible
+         solo cuando la acción aplica) y el formulario de resolución con el
+         campo solucion_aplicada (10–1000 caracteres) y su contador.
+         Se muestra/oculta con el atributo hidden desde agent-panel.js.
+         ===================================================================== -->
+    <div
+      class="modal-overlay"
+      id="ticket-detail-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ticket-detail-title"
+      hidden
+    >
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__header-title" id="ticket-detail-title">
+            Detalle del ticket
+          </h2>
+          <button
+            type="button"
+            class="modal__close"
+            id="ticket-detail-close"
+            aria-label="Cerrar detalle del ticket"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal__body">
+          <!-- Datos del ticket. agent-panel.js completa los .ticket-detail__value
+               y muestra los .ticket-detail__field necesarios. -->
+          <div id="ticket-detail-fields">
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Número de ticket</span>
+              <span class="ticket-detail__value" id="detail-ticket-number"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Área</span>
+              <span class="ticket-detail__value" id="detail-area"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Tipo de asistencia</span>
+              <span class="ticket-detail__value" id="detail-tipo-asistencia"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Categoría</span>
+              <span class="ticket-detail__value" id="detail-categoria"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Subcategoría</span>
+              <span class="ticket-detail__value" id="detail-subcategoria"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Solicitado por</span>
+              <span class="ticket-detail__value" id="detail-creator"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Agente asignado</span>
+              <span class="ticket-detail__value" id="detail-agent"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Status</span>
+              <span class="ticket-detail__value" id="detail-status"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Estado</span>
+              <span class="ticket-detail__value" id="detail-estado"></span>
+            </div>
+            <div class="ticket-detail__field">
+              <span class="ticket-detail__label">Descripción del problema</span>
+              <span class="ticket-detail__value" id="detail-descripcion"></span>
+            </div>
+          </div>
+
+          <!-- Zona de acciones del Agent. El botón ACEPTAR se muestra solo
+               cuando la acción aplica (canAgentAccept en agent-panel.js). -->
+          <div class="ticket-detail__actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="accept-btn"
+              hidden
+            >
+              ACEPTAR
+            </button>
+          </div>
+
+          <!-- Contenedor de feedback específico del detalle (aceptar/resolver). -->
+          <div id="detail-feedback" role="status" aria-live="polite"></div>
+
+          <!-- ---------------------------------------------------------------
+               FORMULARIO DE RESOLUCIÓN
+               Campo solucion_aplicada (10–1000 caracteres) con contador de
+               caracteres. agent-panel.js muestra este bloque solo cuando el
+               ticket está asignado al Agent y puede resolverse, y conecta el
+               envío con resolveTicket().
+               --------------------------------------------------------------- -->
+          <form class="resolve-form" id="resolve-form" novalidate hidden>
+            <h3 class="resolve-form__title">Resolver ticket</h3>
+
+            <div class="form-group">
+              <label class="form-label" for="solucion-aplicada">
+                Solución aplicada
+              </label>
+              <textarea
+                class="form-control"
+                id="solucion-aplicada"
+                name="solucion_aplicada"
+                minlength="10"
+                maxlength="1000"
+                required
+                aria-describedby="solucion-counter solucion-error"
+                placeholder="Describa la solución aplicada (entre 10 y 1000 caracteres)."
+              ></textarea>
+
+              <!-- Contador de caracteres. agent-panel.js actualiza el texto y
+                   alterna la clase --invalid cuando la longitud está fuera de
+                   rango (menos de 10 o más de 1000 caracteres). -->
+              <span
+                class="resolve-form__counter"
+                id="solucion-counter"
+                aria-live="polite"
+              >
+                0 / 1000
+              </span>
+
+              <!-- Mensaje de error de validación del campo de solución. -->
+              <span class="form-error" id="solucion-error" role="alert"></span>
+            </div>
+
+            <div class="ticket-detail__actions">
+              <button type="submit" class="btn btn-success" id="resolve-btn">
+                Marcar como RESUELTO
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      Orquestación del panel (tarea 20.2). Se carga como módulo ES para permitir
+      imports de js/modules/*. Debe ir después de ../js/env.js.
+    -->
+    <script type="module" src="../js/pages/agent-panel.js"></script>
+  </body>
+</html>

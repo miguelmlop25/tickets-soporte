@@ -1,0 +1,310 @@
+/* =============================================================
+   dashboard-user.css — Panel de Usuario (User)
+   Soluciones Tenería
+   -------------------------------------------------------------
+   Contiene:
+   - Layout base del dashboard (header + sidebar + contenido)
+     reutilizable por los tres roles
+   - Formulario de filtros de tickets
+   - Formulario de creación de ticket
+   - Badges de estado para el panel de User
+   - Modal / panel de detalle de ticket
+   Depende de las variables y componentes definidos en main.css.
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   1. LAYOUT BASE DEL DASHBOARD (compartido entre roles)
+   ------------------------------------------------------------- */
+.dashboard {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+}
+
+/* Header superior */
+.dashboard__header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard__header-title {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-inverse);
+  margin: 0;
+}
+
+.dashboard__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dashboard__user-name {
+  font-size: var(--font-size-sm);
+}
+
+/* Barra lateral de navegación */
+.dashboard__sidebar {
+  grid-area: sidebar;
+  background-color: var(--color-secondary);
+  color: var(--color-text-inverse);
+  padding: var(--space-lg) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard__brand {
+  padding: 0 var(--space-lg) var(--space-lg);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-md);
+}
+
+.dashboard__nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: var(--font-weight-medium);
+  border-left: 3px solid transparent;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.dashboard__nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-inverse);
+  text-decoration: none;
+}
+
+/* Elemento de navegación activo */
+.dashboard__nav-item--active {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-left-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+/* Área de contenido principal */
+.dashboard__main {
+  grid-area: main;
+  padding: var(--space-lg);
+  overflow-y: auto;
+}
+
+/* Sección del contenido; se ocultan las no activas con [hidden] */
+.dashboard__section[hidden] {
+  display: none;
+}
+
+.dashboard__section-title {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-lg);
+}
+
+/* -------------------------------------------------------------
+   2. FORMULARIO DE FILTROS
+   ------------------------------------------------------------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+}
+
+.filters__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  flex: 1 1 160px;
+}
+
+.filters__field .form-label {
+  margin-bottom: var(--space-xs);
+}
+
+.filters__actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* Mensaje cuando no hay resultados tras filtrar */
+.no-results {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+}
+
+/* -------------------------------------------------------------
+   3. FORMULARIO DE NUEVO TICKET
+   ------------------------------------------------------------- */
+.ticket-form {
+  max-width: 720px;
+}
+
+/* Rejilla de campos en dos columnas en pantallas amplias */
+.ticket-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+/* Campos que ocupan el ancho completo (descripción) */
+.ticket-form__grid .form-group--full {
+  grid-column: 1 / -1;
+}
+
+/* Contador de caracteres para la descripción */
+.char-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* -------------------------------------------------------------
+   4. BADGES DE ESTADO — PANEL DE USER
+   ------------------------------------------------------------- */
+/* Reutiliza las clases base .badge-status-* y .badge-estado-*
+   definidas en main.css. Aquí se agrupan por semántica del rol
+   User para facilitar su aplicación en la tabla "Mis Tickets". */
+
+/* Columna de acciones en la tabla */
+.ticket-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* -------------------------------------------------------------
+   5. PANEL / MODAL DE DETALLE DE TICKET
+   ------------------------------------------------------------- */
+/* Fondo semitransparente del modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(16, 24, 40, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  z-index: var(--z-modal);
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.modal__body {
+  padding: var(--space-lg);
+}
+
+/* Historial de cambios de estado del ticket */
+.ticket-history {
+  margin-top: var(--space-lg);
+}
+
+.ticket-history__item {
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--color-primary-light);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.ticket-history__meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* -------------------------------------------------------------
+   6. RESPONSIVE
+   ------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* En pantallas medianas la barra lateral pasa a la parte superior */
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto var(--header-height) 1fr;
+    grid-template-areas:
+      "sidebar"
+      "header"
+      "main";
+  }
+
+  .dashboard__sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .dashboard__brand {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding: 0 var(--space-md) 0 0;
+    flex-basis: 100%;
+  }
+
+  .dashboard__nav-item {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .dashboard__nav-item--active {
+    border-left: none;
+    border-bottom-color: var(--color-accent);
+  }
+}
+
+@media (max-width: 600px) {
+  .ticket-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters__field {
+    flex-basis: 100%;
+  }
+}

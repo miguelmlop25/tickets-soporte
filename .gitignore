@@ -1,0 +1,61 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno y configuración local
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# Archivos de secretos y credenciales
+credentials.*
+secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
+serviceAccountKey.json
+
+# Supabase — configuración local con credenciales
+supabase/.env
+supabase/config.local.toml
+
+# Archivos de build y distribución
+dist/
+build/
+.output/
+
+# Cobertura de tests
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Caché de herramientas
+.cache/
+.vite/
+.vitest/
+
+# Editores e IDEs
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+
+# Netlify — caché local de build
+.netlify/
+
+# Configuración de Supabase generada en el build por scripts/inject-env.js
+# (contiene window.__SUPABASE_URL__ / window.__SUPABASE_ANON_KEY__)
+js/env.js
+
+# Deno — caché local
+.deno/

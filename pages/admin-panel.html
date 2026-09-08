@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Administrador — Tickets de Soporte</title>
+
+  <!--
+    Hoja de estilos en orden de cascada:
+      1. main.css            → variables, reset y componentes compartidos.
+      2. dashboard-user.css  → layout base del dashboard (header + sidebar + main).
+      3. dashboard-admin.css → estilos propios del panel de Admin.
+  -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard-user.css" />
+  <link rel="stylesheet" href="../css/dashboard-admin.css" />
+</head>
+<body>
+  <!--
+    Layout principal del panel de Admin. Reutiliza la rejilla base .dashboard
+    de dashboard-user.css (sidebar + header + main). La orquestación (mostrar/
+    ocultar secciones, cargar datos, enlazar eventos) la realiza el módulo
+    ../js/pages/admin-panel.js. No se usan scripts inline por la Content
+    Security Policy del proyecto.
+  -->
+  <div class="dashboard">
+
+    <!-- =====================================================================
+         BARRA LATERAL DE NAVEGACIÓN
+         Los enlaces cambian de sección mediante data-section, gestionado por
+         admin-panel.js. La sección activa se marca con --active.
+         ===================================================================== -->
+    <aside class="dashboard__sidebar" aria-label="Navegación principal">
+      <div class="dashboard__brand">Soluciones Tenería</div>
+      <nav aria-label="Secciones del panel de administración">
+        <a href="#dashboard" class="dashboard__nav-item dashboard__nav-item--active"
+           data-section="dashboard" aria-current="page">Dashboard</a>
+        <a href="#tickets" class="dashboard__nav-item"
+           data-section="tickets">Todos los Tickets</a>
+        <a href="#bitacora" class="dashboard__nav-item"
+           data-section="bitacora">Bitácora de Incidentes</a>
+        <a href="#usuarios" class="dashboard__nav-item"
+           data-section="usuarios">Gestión de Usuarios</a>
+      </nav>
+    </aside>
+
+    <!-- =====================================================================
+         HEADER SUPERIOR
+         Incluye el título del panel y el componente de notificaciones (campana).
+         La estructura de la campana coincide con la esperada por
+         js/modules/notifications.js (.notifications__bell/__badge/__dropdown/__list).
+         ===================================================================== -->
+    <header class="dashboard__header">
+      <h1 class="dashboard__header-title">Panel de Administrador</h1>
+
+      <div class="dashboard__header-actions">
+        <!-- Nombre del Admin autenticado; lo completa admin-panel.js. -->
+        <span class="dashboard__user-name" id="admin-user-name"></span>
+
+        <!-- Componente de notificaciones en tiempo real. -->
+        <div class="notifications">
+          <button type="button" class="notifications__bell" id="notifications-bell"
+                  aria-haspopup="true" aria-expanded="false"
+                  aria-label="Notificaciones">
+            <span aria-hidden="true">🔔</span>
+            <!-- Badge de no leídas; se oculta cuando no hay notificaciones. -->
+            <span class="notifications__badge" data-count="0" hidden></span>
+          </button>
+
+          <div class="notifications__dropdown" id="notifications-dropdown"
+               role="region" aria-label="Lista de notificaciones" hidden>
+            <div class="notifications__header">Notificaciones</div>
+            <ul class="notifications__list"></ul>
+          </div>
+        </div>
+
+        <!-- Cierre de sesión; el manejador lo enlaza admin-panel.js. -->
+        <button type="button" class="btn btn-secondary btn-sm" id="logout-button">
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         CONTENIDO PRINCIPAL
+         Cada sección se muestra/oculta con el atributo [hidden]; admin-panel.js
+         alterna la visibilidad según la navegación.
+         ===================================================================== -->
+    <main class="dashboard__main">
+
+      <!-- =================================================================
+           SECCIÓN 1: DASHBOARD (métricas)
+           Cards de conteos por status + gráfico por categoría + rango de fechas.
+           ================================================================= -->
+      <section class="dashboard__section" id="section-dashboard"
+               aria-labelledby="dashboard-title">
+        <h2 class="dashboard__section-title" id="dashboard-title">Dashboard</h2>
+
+        <!-- Selector de rango de fechas para filtrar las métricas. -->
+        <form class="date-range" id="dashboard-date-range">
+          <div class="date-range__field">
+            <label class="form-label" for="dashboard-date-from">Desde</label>
+            <input type="date" class="form-control" id="dashboard-date-from" name="from" />
+          </div>
+          <div class="date-range__field">
+            <label class="form-label" for="dashboard-date-to">Hasta</label>
+            <input type="date" class="form-control" id="dashboard-date-to" name="to" />
+          </div>
+          <div class="date-range__field">
+            <button type="submit" class="btn btn-primary">Aplicar</button>
+          </div>
+          <!-- Mensaje de error de validación del rango (from > to). -->
+          <p class="form-error" id="dashboard-date-error" role="alert" hidden></p>
+        </form>
+
+        <!--
+          Contenedor de las cards de métricas. js/modules/dashboard.js inyecta
+          aquí las cards (Pendiente, En proceso, Finalizado, Total).
+        -->
+        <div class="metrics-grid" id="metrics-grid" aria-live="polite"></div>
+
+        <!-- Gráfico de tickets por categoría dibujado con SVG nativo. -->
+        <div class="chart-container">
+          <h3 class="chart-container__title">Tickets por categoría</h3>
+          <div class="chart-canvas" id="chart-canvas"></div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SECCIÓN 2: TODOS LOS TICKETS
+           Tabla completa con filtros por User, Agent, Status, Estado, Categoría.
+           ================================================================= -->
+      <section class="dashboard__section" id="section-tickets"
+               aria-labelledby="tickets-title" hidden>
+        <h2 class="dashboard__section-title" id="tickets-title">Todos los Tickets</h2>
+
+        <!-- Filtros de la tabla de tickets. -->
+        <form class="filters" id="tickets-filters">
+          <div class="filters__field">
+            <label class="form-label" for="filter-user">Usuario</label>
+            <input type="text" class="form-control" id="filter-user" name="user"
+                   placeholder="Nombre del usuario" />
+          </div>
+          <div class="filters__field">
+            <label class="form-label" for="filter-agent">Agente</label>
+            <input type="text" class="form-control" id="filter-agent" name="agent"
+                   placeholder="Nombre del agente" />
+          </div>
+          <div class="filters__field">
+            <label class="form-label" for="filter-status">Status</label>
+            <select class="form-control" id="filter-status" name="status">
+              <option value="">Todos</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+          <div class="filters__field">
+            <label class="form-label" for="filter-estado">Estado</label>
+            <select class="form-control" id="filter-estado" name="estado">
+              <option value="">Todos</option>
+              <option value="TICKET PENDIENTE">TICKET PENDIENTE</option>
+              <option value="TICKET ACEPTADO">TICKET ACEPTADO</option>
+              <option value="TICKET RESUELTO">TICKET RESUELTO</option>
+            </select>
+          </div>
+          <div class="filters__field">
+            <label class="form-label" for="filter-categoria">Categoría</label>
+            <select class="form-control" id="filter-categoria" name="categoria">
+              <option value="">Todas</option>
+              <option value="SOFTWARE">SOFTWARE</option>
+              <option value="HARDWARE">HARDWARE</option>
+              <option value="CONFIGURACIONES">CONFIGURACIONES</option>
+              <option value="SEGURIDAD">SEGURIDAD</option>
+              <option value="TELECOMUNICACIONES">TELECOMUNICACIONES</option>
+            </select>
+          </div>
+          <div class="filters__actions">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+          </div>
+        </form>
+
+        <!-- Mensaje de error de carga de tickets. -->
+        <p class="form-error" id="tickets-error" role="alert" hidden></p>
+
+        <!--
+          Contenedor de la tabla de tickets. admin-panel.js renderiza aquí la
+          tabla (.data-table) con los tickets obtenidos y sus badges de estado.
+        -->
+        <div class="table-wrapper" id="tickets-table"></div>
+      </section>
+
+      <!-- =================================================================
+           SECCIÓN 3: BITÁCORA DE INCIDENTES
+           Tabla con las 10 columnas definidas, filtros de fecha y exportar PDF.
+           ================================================================= -->
+      <section class="dashboard__section" id="section-bitacora"
+               aria-labelledby="bitacora-title" hidden>
+        <h2 class="dashboard__section-title" id="bitacora-title">Bitácora de Incidentes</h2>
+
+        <!-- Barra de herramientas: filtros de fecha + botón exportar PDF. -->
+        <div class="bitacora-toolbar">
+          <form class="date-range" id="bitacora-filters">
+            <div class="date-range__field">
+              <label class="form-label" for="bitacora-date-from">Desde</label>
+              <input type="date" class="form-control" id="bitacora-date-from" name="fecha_desde" />
+            </div>
+            <div class="date-range__field">
+              <label class="form-label" for="bitacora-date-to">Hasta</label>
+              <input type="date" class="form-control" id="bitacora-date-to" name="fecha_hasta" />
+            </div>
+            <div class="date-range__field">
+              <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+          </form>
+
+          <!-- Botón de exportación a PDF; su manejador lo enlaza admin-panel.js. -->
+          <button type="button" class="btn btn-export" id="bitacora-export">
+            Exportar PDF
+          </button>
+        </div>
+
+        <!--
+          Contenedor de error de la exportación PDF. js/modules/bitacora.js
+          busca este id (#bitacora-error) para mostrar errores sin alterar los
+          datos visibles en pantalla (Requisito 4.8).
+        -->
+        <p class="form-error" id="bitacora-error" role="alert" hidden></p>
+
+        <!--
+          Tabla de la bitácora con las 10 columnas definidas (Requisito 4.6).
+          admin-panel.js inyecta las filas en el <tbody id="bitacora-tbody">.
+        -->
+        <div class="table-wrapper">
+          <table class="data-table bitacora-table" id="bitacora-table">
+            <thead>
+              <tr>
+                <th scope="col">Número de Ticket</th>
+                <th scope="col">Area que reporta</th>
+                <th scope="col">Solicitado por</th>
+                <th scope="col">Fecha de apertura</th>
+                <th scope="col" class="col-descripcion">Descripción del problema</th>
+                <th scope="col">Inicio</th>
+                <th scope="col">Fin</th>
+                <th scope="col">Total</th>
+                <th scope="col">Status actual</th>
+                <th scope="col" class="col-solucion">Solución aplicada</th>
+              </tr>
+            </thead>
+            <tbody id="bitacora-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SECCIÓN 4: GESTIÓN DE USUARIOS
+           Tabla de Users y Agents con acciones bloquear/desbloquear y eliminar.
+           ================================================================= -->
+      <section class="dashboard__section" id="section-usuarios"
+               aria-labelledby="usuarios-title" hidden>
+        <h2 class="dashboard__section-title" id="usuarios-title">Gestión de Usuarios</h2>
+
+        <!--
+          Contenedor de la tabla de usuarios. js/modules/user-management.js
+          renderiza aquí la tabla completa e inserta su propio contenedor de
+          errores (#user-management-error) y la paginación.
+        -->
+        <div id="users-table" aria-live="polite"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!--
+    Orden de carga de scripts (todos como módulos ES):
+      1. env.js  → define window.__SUPABASE_URL__ y window.__SUPABASE_ANON_KEY__
+                   (generado por el build de Netlify). Debe cargarse ANTES que
+                   cualquier módulo que dependa de la configuración de Supabase.
+      2. admin-panel.js → orquestación del panel (tarea 21.2). Al ser type="module"
+                   se ejecuta tras el parseo del DOM, por lo que puede acceder a
+                   los contenedores anteriores de forma segura.
+    No se usan scripts inline para cumplir la Content Security Policy.
+  -->
+  <script type="module" src="../js/env.js"></script>
+  <script type="module" src="../js/pages/admin-panel.js"></script>
+</body>
+</html>
