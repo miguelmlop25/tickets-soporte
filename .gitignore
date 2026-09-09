@@ -24,6 +24,9 @@ serviceAccountKey.json
 supabase/.env
 supabase/config.local.toml
 
+# Supabase CLI — carpeta temporal generada al vincular el proyecto
+supabase/.temp/
+
 # Archivos de build y distribución
 dist/
 build/
