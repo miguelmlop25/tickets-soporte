@@ -345,7 +345,7 @@ export function renderLoginForm(role) {
     const adminNote = document.createElement('p');
     adminNote.className = 'login-form__admin-note';
     adminNote.textContent =
-      'El registro de administradores se realiza directamente desde la base de datos.';
+      'El registro de administradores no se permite. Solo es posible iniciar sesión.';
     form.appendChild(adminNote);
   }
 
