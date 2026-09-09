@@ -243,6 +243,71 @@
         </form>
       </div>
     </section>
+
+    <!--
+      PASO 3 (opcional): restablecimiento de contraseña.
+      Permanece oculta y solo se muestra cuando el usuario llega desde el enlace
+      de recuperacion enviado por correo. login-page.js detecta el evento
+      PASSWORD_RECOVERY de Supabase Auth, revela esta seccion y procesa el envio
+      llamando a supabase.auth.updateUser({ password }). No se usan dialogos
+      nativos del navegador: los mensajes se muestran mediante la interfaz.
+    -->
+    <section id="password-recovery" aria-label="Restablecer contrasena" hidden>
+      <h2 class="auth-area-title u-text-center">Restablecer contrasena</h2>
+
+      <p class="auth-hint u-text-center u-text-muted u-text-sm">
+        Ingresa tu nueva contrasena para completar la recuperacion de tu cuenta.
+      </p>
+
+      <form id="password-recovery-form" class="auth-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="recovery-password">Nueva contrasena</label>
+          <input
+            type="password"
+            id="recovery-password"
+            name="password"
+            class="form-control"
+            autocomplete="new-password"
+            required
+          />
+          <!-- Recordatorio de los requisitos de seguridad de la contrasena -->
+          <ul class="password-requirements">
+            <li>Minimo 8 caracteres</li>
+            <li>Al menos una letra minuscula</li>
+            <li>Al menos una letra mayuscula</li>
+            <li>Al menos un digito</li>
+            <li>Al menos un caracter especial</li>
+          </ul>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="recovery-confirm-password">
+            Confirmar nueva contrasena
+          </label>
+          <input
+            type="password"
+            id="recovery-confirm-password"
+            name="confirmPassword"
+            class="form-control"
+            autocomplete="new-password"
+            required
+          />
+        </div>
+
+        <!-- Zona de mensajes de error/exito del restablecimiento -->
+        <div
+          id="recovery-message"
+          class="alert"
+          role="alert"
+          aria-live="assertive"
+          hidden
+        ></div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          Guardar nueva contrasena
+        </button>
+      </form>
+    </section>
   </main>
 </body>
 </html>

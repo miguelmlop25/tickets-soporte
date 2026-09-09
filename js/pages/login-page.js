@@ -24,7 +24,8 @@
 import { supabase } from '../config.js';
 import { loginWithRole, renderLoginForm, ROLE_PANEL_ROUTES } from '../auth/login.js';
 import { registerUser } from '../auth/register.js';
-import { validateEmail } from '../modules/validators.js';
+import { validateEmail, validatePassword } from '../modules/validators.js';
+import { showToast } from '../modules/ui-dialogs.js';
 
 // ---------------------------------------------------------------------------
 // Constantes
@@ -61,6 +62,18 @@ let registerPanel;
 let registerForm;
 let registerMessageBox;
 let globalMessageBox;
+
+// Nodos de la seccion de restablecimiento de contrasena (flujo PASSWORD_RECOVERY).
+let passwordRecoverySection;
+let passwordRecoveryForm;
+let recoveryMessageBox;
+
+/**
+ * Indica que la app se abrio desde un enlace de recuperacion de contrasena.
+ * Mientras esta activo, se muestra el formulario de nueva contrasena y se
+ * ocultan la seleccion de rol y el area de login/registro.
+ */
+let inPasswordRecovery = false;
 
 // ---------------------------------------------------------------------------
 // Utilidades de UI
@@ -366,6 +379,102 @@ async function handleRegisterSubmit(event) {
 }
 
 // ---------------------------------------------------------------------------
+// Restablecimiento de contraseña (flujo PASSWORD_RECOVERY)
+// ---------------------------------------------------------------------------
+
+/**
+ * Muestra la seccion de restablecimiento de contrasena y oculta las vistas de
+ * seleccion de rol y de login/registro. Se invoca cuando Supabase dispara el
+ * evento PASSWORD_RECOVERY al abrir la app desde el enlace del correo.
+ */
+function enterPasswordRecovery() {
+  inPasswordRecovery = true;
+
+  if (roleSelectionSection) roleSelectionSection.hidden = true;
+  if (authAreaSection) authAreaSection.hidden = true;
+  if (passwordRecoverySection) passwordRecoverySection.hidden = false;
+
+  clearMessage(recoveryMessageBox);
+}
+
+/**
+ * Maneja el envio del formulario de nueva contrasena: valida los requisitos de
+ * seguridad y la coincidencia de ambos campos, y persiste la nueva contrasena
+ * mediante supabase.auth.updateUser(). Al finalizar con exito cierra la sesion
+ * temporal de recuperacion y regresa a la pantalla de inicio de sesion.
+ *
+ * Los mensajes se muestran a traves de la interfaz (contenedor + toast); no se
+ * usan dialogos nativos del navegador.
+ *
+ * @param {SubmitEvent} event - Evento de envio del formulario.
+ */
+async function handlePasswordRecoverySubmit(event) {
+  event.preventDefault();
+
+  clearMessage(recoveryMessageBox);
+
+  const password = passwordRecoveryForm.elements.password?.value ?? '';
+  const confirmPassword =
+    passwordRecoveryForm.elements.confirmPassword?.value ?? '';
+
+  // Requisitos de seguridad de la contrasena (misma regla que el registro).
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.isValid) {
+    showMessage(recoveryMessageBox, passwordCheck.errors.join(' '), 'danger');
+    return;
+  }
+
+  // Ambos campos deben coincidir.
+  if (password !== confirmPassword) {
+    showMessage(recoveryMessageBox, 'Las contrasenas no coinciden.', 'danger');
+    return;
+  }
+
+  const submitButton = passwordRecoveryForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+
+  try {
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      // Un enlace expirado o ya utilizado suele producir un error aqui.
+      showMessage(
+        recoveryMessageBox,
+        'No fue posible actualizar la contrasena. El enlace pudo haber ' +
+          'expirado; solicita uno nuevo desde "Olvide mi contrasena".',
+        'danger',
+      );
+      return;
+    }
+
+    // Exito: se cierra la sesion temporal de recuperacion para forzar un inicio
+    // de sesion limpio con la nueva contrasena.
+    passwordRecoveryForm.reset();
+    await supabase.auth.signOut();
+
+    showToast(
+      'Contrasena actualizada. Inicia sesion con tu nueva contrasena.',
+      'success',
+    );
+
+    // Regresa a la pantalla de inicio de sesion (seleccion de rol).
+    inPasswordRecovery = false;
+    if (passwordRecoverySection) passwordRecoverySection.hidden = true;
+    if (roleSelectionSection) roleSelectionSection.hidden = false;
+  } catch (unexpected) {
+    console.error('Error al actualizar la contrasena:', unexpected);
+    showMessage(
+      recoveryMessageBox,
+      'Ocurrio un error inesperado al actualizar la contrasena. ' +
+        'Intente nuevamente en unos momentos.',
+      'danger',
+    );
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Inicialización
 // ---------------------------------------------------------------------------
 
@@ -385,6 +494,11 @@ function init() {
   registerMessageBox = document.getElementById('register-message');
   globalMessageBox = document.getElementById('global-message');
 
+  // Seccion y formulario de restablecimiento de contrasena.
+  passwordRecoverySection = document.getElementById('password-recovery');
+  passwordRecoveryForm = document.getElementById('password-recovery-form');
+  recoveryMessageBox = document.getElementById('recovery-message');
+
   // Botones de selección de rol.
   roleSelectionSection.querySelectorAll('.role-selector__btn').forEach((btn) => {
     btn.addEventListener('click', () => selectRole(btn.dataset.role));
@@ -402,6 +516,18 @@ function init() {
 
   // Envío del formulario de registro.
   registerForm.addEventListener('submit', handleRegisterSubmit);
+
+  // Envio del formulario de nueva contrasena (flujo de recuperacion).
+  passwordRecoveryForm?.addEventListener('submit', handlePasswordRecoverySubmit);
+
+  // Suscripcion al cambio de estado de autenticacion. Supabase dispara el
+  // evento PASSWORD_RECOVERY cuando la app se abre desde el enlace del correo
+  // de recuperacion; en ese momento se muestra el formulario de nueva contrasena.
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      enterPasswordRecovery();
+    }
+  });
 
   // Mensaje proveniente de la URL (por ejemplo, sesión expirada).
   showQueryMessage();
