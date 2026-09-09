@@ -319,6 +319,11 @@
    8. MODAL / PANEL DE DETALLE DE TICKET
    ------------------------------------------------------------- */
 /* Fondo semitransparente oscuro con leve desenfoque */
+/* Nota: se usa el selector .modal-overlay con !important en display para
+   imponerse sobre la clase .modal de Bootstrap, que aplica display:none y
+   position:fixed a cualquier elemento con clase "modal". El overlay del
+   proyecto no lleva la clase de Bootstrap, pero el contenedor interno sí usa
+   la clase "modal", por lo que el fix real está en la regla .modal-overlay .modal. */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -336,8 +341,13 @@
   display: none;
 }
 
-/* Contenedor del modal: superficie glass sólida y elegante */
-.modal {
+/* Contenedor del modal: superficie glass sólida y elegante.
+   El selector .modal-overlay .modal tiene mayor especificidad que la clase
+   .modal de Bootstrap (0,2,0 vs 0,1,0), y display:block !important garantiza
+   que el contenido sea visible aunque Bootstrap intente ocultarlo. */
+.modal-overlay .modal {
+  display: block !important;
+  position: static !important;
   width: 100%;
   max-width: 640px;
   max-height: 85vh;
