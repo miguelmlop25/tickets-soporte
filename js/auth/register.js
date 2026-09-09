@@ -145,7 +145,27 @@ export async function registerUser(formData, role) {
       return mapSignUpError(error);
     }
 
-    // Registro aceptado: la cuenta queda pendiente de verificación de correo.
+    // --- Deteccion de correo ya registrado (sin revelar su existencia) ---
+    // Supabase, por proteccion contra enumeracion de usuarios, no devuelve
+    // error cuando el correo ya existe: responde "exito" pero con el array
+    // `identities` vacio. Se detecta ese caso para mostrar un mensaje neutro
+    // y util, sin confirmar explicitamente si el correo esta o no registrado.
+    const identities = data?.user?.identities;
+    const yaRegistrado = Array.isArray(identities) && identities.length === 0;
+
+    if (yaRegistrado) {
+      return {
+        success: true,
+        message:
+          'Si el correo no estaba registrado, recibirá un enlace de ' +
+          'verificación en su bandeja de entrada. Si ya tiene una cuenta, ' +
+          'utilice la opción "Iniciar sesión".',
+        errors: [],
+        data,
+      };
+    }
+
+    // Registro aceptado (cuenta nueva): queda pendiente de verificación.
     return {
       success: true,
       message:
