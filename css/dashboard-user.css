@@ -129,7 +129,6 @@
   background-color: rgba(56, 189, 248, 0.18);
   border-color: rgba(56, 189, 248, 0.35);
   color: var(--color-text-inverse);
-  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 .dashboard__nav-item--active .dashboard__nav-icon {
@@ -152,6 +151,10 @@
   box-shadow: var(--shadow-sm);
   -webkit-backdrop-filter: blur(var(--glass-blur));
   backdrop-filter: blur(var(--glass-blur));
+  /* Contexto de apilamiento por encima del contenido principal para que el
+     dropdown de notificaciones se muestre sobre las tarjetas/tablas del main. */
+  position: relative;
+  z-index: var(--z-dropdown);
 }
 
 .dashboard__header-title {
@@ -522,9 +525,9 @@
     width: auto;
   }
 
-  /* En horizontal el acento activo pasa a la base del botón */
   .dashboard__nav-item--active {
-    box-shadow: inset 0 -3px 0 var(--color-accent);
+    /* Sin acento lateral/inferior: el item activo se distingue por su
+       fondo y borde translucidos. */
   }
 }
 

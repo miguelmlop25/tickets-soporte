@@ -127,7 +127,7 @@ function selectRole(role) {
   roleSelectionSection.hidden = true;
   authAreaSection.hidden = false;
 
-  authAreaTitle.textContent = `Acceso — ${ROLE_LABELS[role] ?? role}`;
+  authAreaTitle.textContent = `Acceso - ${ROLE_LABELS[role] ?? role}`;
 
   // Inyecta el formulario de login correspondiente al rol.
   renderLoginPanel(role);

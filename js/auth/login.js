@@ -281,7 +281,7 @@ export function renderLoginForm(role) {
   // Título del formulario según el rol.
   const title = document.createElement('h2');
   title.className = 'login-form__title';
-  title.textContent = `Iniciar sesión — ${label}`;
+  title.textContent = `Iniciar sesión - ${label}`;
   form.appendChild(title);
 
   // Campo: correo electrónico.

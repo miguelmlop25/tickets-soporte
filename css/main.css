@@ -108,6 +108,7 @@
   --z-dropdown: 1000;
   --z-modal: 1100;
   --z-toast: 1200;
+  --z-notifications: 1300;
 }
 
 /* -------------------------------------------------------------
@@ -636,13 +637,16 @@ textarea.form-control {
   background: transparent;
   border: none;
   border-radius: var(--radius-pill);
-  color: var(--color-text-inverse);
+  /* Icono en azul primario para que destaque y sea facil de distinguir
+     sobre el header glass claro. */
+  color: var(--color-primary);
   font-size: var(--font-size-lg);
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .notifications__bell:hover {
-  background-color: rgba(255, 255, 255, 0.18);
+  background-color: var(--color-info-bg);
+  color: var(--color-primary-dark);
 }
 
 /* Badge con el conteo de notificaciones no leidas */
@@ -684,7 +688,8 @@ textarea.form-control {
   box-shadow: var(--shadow-lg);
   -webkit-backdrop-filter: blur(22px);
   backdrop-filter: blur(22px);
-  z-index: var(--z-dropdown);
+  /* Muy por encima del contenido para no quedar tapado por tarjetas/tablas. */
+  z-index: var(--z-notifications);
 }
 
 /* El dropdown se oculta con el atributo hidden */
