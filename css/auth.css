@@ -1,65 +1,108 @@
 /* =============================================================
-   auth.css — Estilos de autenticación
-   Soluciones Tenería
+   auth.css — Estilos de autenticación "Liquid Glass"
+   Soluciones Tenería — Sistema de tickets de soporte
    -------------------------------------------------------------
+   Rediseño puramente visual de la pantalla de login/registro.
+   Depende de las variables (design tokens) definidas en main.css
+   y se carga DESPUÉS de Bootstrap y main.css.
+
    Contiene:
-   - Pantalla de login con selección de rol (tres botones)
-   - Formularios de registro e inicio de sesión
-   - Sistema de pestañas (Iniciar Sesión / Registrarse)
-   Depende de las variables definidas en main.css.
+   1. Layout de la pantalla de autenticación.
+   2. Tarjeta central glass y encabezado corporativo.
+   3. Selección de rol (tres tarjetas clicables).
+   4. Botón "volver" y título del área de acceso.
+   5. Sistema de pestañas (Iniciar Sesión / Registrarse).
+   6. Formularios (registro estático y login dinámico por JS).
+   7. Requisitos de contraseña y avisos informativos.
+   8. Responsive.
+
+   Nota: el formulario de login se genera dinámicamente en
+   js/auth/login.js con las clases .login-form* que aquí se
+   estilizan para mantener coherencia con el sistema glass.
    ============================================================= */
 
 /* -------------------------------------------------------------
    1. LAYOUT DE LA PANTALLA DE AUTENTICACIÓN
    ------------------------------------------------------------- */
+/* El fondo con gradiente y blobs lo aporta main.css (body).
+   Aquí solo se centra el contenido y se da respiración lateral. */
 .auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
 }
 
-/* Contenedor principal centrado */
+/* -------------------------------------------------------------
+   2. TARJETA CENTRAL GLASS + ENCABEZADO
+   ------------------------------------------------------------- */
+/* Superficie translúcida principal con desenfoque, borde suave
+   y sombra difusa. Compone el look "Liquid Glass". */
 .auth-card {
   width: 100%;
-  max-width: 440px;
-  background-color: var(--color-surface);
+  max-width: 460px;
+  padding: var(--space-xl);
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: var(--space-xl);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 
-/* Encabezado corporativo */
+/* Encabezado corporativo centrado */
 .auth-header {
   text-align: center;
   margin-bottom: var(--space-lg);
 }
 
+/* Marca corporativa: icono dentro de un círculo glass con acento */
+.auth-header__brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-md);
+  font-size: 1.75rem;
+  color: var(--color-primary-contrast);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 8px 22px rgba(37, 99, 168, 0.35);
+}
+
 .auth-header__title {
   font-size: var(--font-size-xl);
   margin-bottom: var(--space-xs);
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
 }
 
 .auth-header__subtitle {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   margin: 0;
 }
 
+/* Texto guía sobre la selección de rol */
+.auth-hint {
+  margin-bottom: var(--space-md);
+}
+
 /* -------------------------------------------------------------
-   2. SELECCIÓN DE ROL (tres botones)
+   3. SELECCIÓN DE ROL (tres tarjetas clicables)
    ------------------------------------------------------------- */
 .role-selector {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-md);
-  margin-top: var(--space-lg);
+  margin-top: var(--space-md);
 }
 
-/* Cada botón de rol */
+/* Cada botón de rol como tarjeta glass elevable */
 .role-selector__btn {
   display: flex;
   flex-direction: column;
@@ -67,41 +110,104 @@
   justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-lg) var(--space-sm);
-  background-color: var(--color-surface);
-  border: 2px solid var(--color-border);
+  background-color: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--color-secondary);
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
   text-align: center;
-  transition: border-color var(--transition-base), background-color var(--transition-base), transform var(--transition-fast);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: border-color var(--transition-base),
+    background-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-fast),
+    color var(--transition-base);
 }
 
 .role-selector__btn:hover {
-  border-color: var(--color-primary);
-  background-color: var(--color-info-bg);
-  transform: translateY(-2px);
+  border-color: var(--color-primary-light);
+  background-color: var(--glass-bg-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
 }
 
-/* Rol actualmente seleccionado */
+/* Rol actualmente seleccionado: acento primario sólido */
 .role-selector__btn--active {
   border-color: var(--color-primary);
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-primary-contrast);
+  box-shadow: 0 10px 26px rgba(37, 99, 168, 0.4);
+}
+
+.role-selector__btn--active .role-selector__icon {
   color: var(--color-primary-contrast);
 }
 
+/* Icono grande del rol (contenedor del <i> de Bootstrap Icons) */
 .role-selector__icon {
+  display: inline-flex;
   font-size: var(--font-size-xxl);
   line-height: 1;
+  color: var(--color-primary);
+  transition: color var(--transition-base);
+}
+
+.role-selector__label {
+  display: block;
+  line-height: 1.2;
 }
 
 /* -------------------------------------------------------------
-   3. SISTEMA DE PESTAÑAS (Iniciar Sesión / Registrarse)
+   4. BOTÓN "VOLVER" Y TÍTULO DEL ÁREA DE ACCESO
+   ------------------------------------------------------------- */
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  padding: var(--space-xs) var(--space-sm);
+  background: none;
+  border: none;
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.auth-back:hover {
+  background-color: var(--glass-bg-soft);
+  color: var(--color-primary);
+}
+
+/* Título del área de autenticación (ej. "Acceso — Usuario") */
+.auth-area-title {
+  font-size: var(--font-size-lg);
+  color: var(--color-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+/* -------------------------------------------------------------
+   5. SISTEMA DE PESTAÑAS (Iniciar Sesión / Registrarse)
    ------------------------------------------------------------- */
 .auth-tabs {
   display: flex;
-  border-bottom: 2px solid var(--color-border);
+  gap: var(--space-xs);
+  padding: var(--space-xs);
   margin-bottom: var(--space-lg);
+  background-color: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Las pestañas se ocultan por completo con el atributo hidden */
+.auth-tabs[hidden] {
+  display: none;
 }
 
 .auth-tabs__tab {
@@ -109,51 +215,202 @@
   padding: var(--space-sm) var(--space-md);
   background: transparent;
   border: none;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  font-size: var(--font-size-base);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
-  transition: color var(--transition-fast), border-color var(--transition-fast);
+  transition: color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .auth-tabs__tab:hover {
   color: var(--color-primary);
 }
 
-/* Pestaña activa */
+/* Pestaña activa: superficie glass elevada con acento */
 .auth-tabs__tab--active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background-color: var(--glass-bg-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 /* -------------------------------------------------------------
-   4. FORMULARIOS DE AUTENTICACIÓN
+   6. FORMULARIOS DE AUTENTICACIÓN
    ------------------------------------------------------------- */
+/* Panel que agrupa un formulario; se oculta con [hidden]. */
+.auth-panel[hidden] {
+  display: none;
+}
+
+/* Formulario de registro estático */
 .auth-form {
   display: flex;
   flex-direction: column;
 }
 
-/* Panel que agrupa un formulario; se oculta con [hidden] */
-.auth-panel[hidden] {
-  display: none;
-}
-
-/* Enlace "Olvidé mi contraseña" */
-.auth-form__forgot {
-  align-self: flex-end;
-  margin-top: calc(-1 * var(--space-sm));
-  margin-bottom: var(--space-md);
-  font-size: var(--font-size-sm);
-}
-
-/* Botón principal de envío */
+/* Espaciado del botón principal dentro del formulario de registro */
 .auth-form .btn {
   margin-top: var(--space-sm);
 }
 
-/* Requisitos de contraseña mostrados bajo el campo */
+/* --- Formulario de login generado dinámicamente por JS ---
+   Clases producidas por renderLoginForm() en js/auth/login.js.
+   Se estilizan para reflejar el sistema glass de main.css. */
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título del formulario de login (ej. "Iniciar sesión — Usuario") */
+.login-form__title {
+  font-size: var(--font-size-lg);
+  color: var(--color-secondary);
+  margin-bottom: var(--space-md);
+  text-align: center;
+}
+
+/* Grupo de campo (label + input) */
+.login-form__field {
+  margin-bottom: var(--space-md);
+}
+
+.login-form__label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-secondary);
+}
+
+/* Input con superficie translúcida, coherente con .form-control */
+.login-form__input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  color: var(--color-text);
+  background-color: var(--glass-bg-soft);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.login-form__input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.85;
+}
+
+.login-form__input:focus {
+  border-color: var(--color-primary-light);
+  background-color: var(--glass-bg-strong);
+  box-shadow: 0 0 0 3px rgba(79, 139, 209, 0.25);
+  outline: none;
+}
+
+/* Mensaje de error de autenticación (role="alert") */
+.login-form__error {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  background-color: var(--color-danger-bg);
+  border: 1px solid rgba(185, 28, 28, 0.35);
+  border-radius: var(--radius-sm);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* El mensaje de error se oculta con el atributo hidden */
+.login-form__error[hidden] {
+  display: none;
+}
+
+/* Botón principal de envío: estilo primario tipo pill */
+.login-form__submit {
+  width: 100%;
+  margin-top: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-contrast);
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 18px rgba(37, 99, 168, 0.32);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.login-form__submit:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.login-form__submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-form__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Enlaces internos del formulario de login (olvidé/registro) */
+.login-form__forgot {
+  align-self: flex-end;
+  margin-top: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.login-form__register {
+  align-self: center;
+  margin-top: var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Aviso informativo para Admin (no permite registro): estilo glass */
+.login-form__admin-note {
+  margin-top: var(--space-md);
+  margin-bottom: 0;
+  padding: var(--space-md);
+  background-color: var(--color-info-bg);
+  border: 1px solid rgba(29, 78, 216, 0.3);
+  border-left: 4px solid var(--color-info);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-secondary);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* -------------------------------------------------------------
+   7. REQUISITOS DE CONTRASEÑA Y AVISO INFORMATIVO
+   ------------------------------------------------------------- */
+/* Aviso informativo genérico (glass tintado) */
+.admin-notice {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-info-bg);
+  border: 1px solid rgba(29, 78, 216, 0.3);
+  border-left: 4px solid var(--color-info);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-secondary);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Lista de requisitos de contraseña mostrada bajo el campo */
 .password-requirements {
   margin: var(--space-xs) 0 var(--space-md);
   padding-left: var(--space-md);
@@ -166,48 +423,25 @@
   margin-bottom: 2px;
 }
 
-/* Requisito cumplido */
+/* Requisito cumplido: se resalta en verde de éxito */
 .password-requirements li.is-met {
   color: var(--color-success);
+  font-weight: var(--font-weight-medium);
 }
 
 /* -------------------------------------------------------------
-   5. MENSAJE INFORMATIVO PARA ADMINISTRADOR
-   ------------------------------------------------------------- */
-/* El acceso Admin no permite registro; se muestra un aviso. */
-.admin-notice {
-  margin-top: var(--space-md);
-  padding: var(--space-md);
-  background-color: var(--color-info-bg);
-  border-left: 4px solid var(--color-info);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-secondary);
-}
-
-/* Botón para volver a la selección de rol */
-.auth-back {
-  margin-bottom: var(--space-md);
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-size: var(--font-size-sm);
-  padding: 0;
-}
-
-.auth-back:hover {
-  text-decoration: underline;
-}
-
-/* -------------------------------------------------------------
-   6. RESPONSIVE
+   8. RESPONSIVE
    ------------------------------------------------------------- */
 @media (max-width: 480px) {
+  .auth-page {
+    padding: var(--space-md);
+  }
+
   .auth-card {
     padding: var(--space-lg);
   }
 
-  /* En pantallas muy pequeñas los botones de rol se apilan */
+  /* En pantallas pequeñas los botones de rol se apilan en una columna */
   .role-selector {
     grid-template-columns: 1fr;
   }
@@ -215,6 +449,7 @@
   .role-selector__btn {
     flex-direction: row;
     justify-content: flex-start;
+    gap: var(--space-md);
     padding: var(--space-md);
   }
 

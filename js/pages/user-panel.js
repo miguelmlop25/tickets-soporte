@@ -46,6 +46,9 @@ import {
   validateTicketFields,
   SUBCATEGORIAS,
 } from '../modules/validators.js';
+// Diálogos del sistema (toast/confirm/prompt) que reemplazan a los nativos del
+// navegador, con estética coherente al tema Liquid Glass.
+import { showToast, showConfirm, showPrompt } from '../modules/ui-dialogs.js';
 
 // ---------------------------------------------------------------------------
 // Constantes del módulo
@@ -710,17 +713,22 @@ async function handleEditTicket(ticketId) {
 
   // Comprobación de conveniencia del estado editable (Requisito 7.6).
   if (!EDITABLE_STATUSES.includes(ticket.status)) {
-    window.alert('Solo es posible editar tickets en estado Pendiente o En proceso.');
+    showToast('Solo es posible editar tickets en estado Pendiente o En proceso.', 'warning');
     return;
   }
 
-  // Edición de la descripción mediante prompt. Se preselecciona el valor actual.
-  const nuevaDescripcion = window.prompt(
-    'Edite la descripción del problema:',
-    ticket.descripcion || '',
-  );
+  // Edición de la descripción mediante el modal del sistema (reemplaza al
+  // prompt nativo). Se preselecciona el valor actual.
+  const nuevaDescripcion = await showPrompt({
+    title: 'Editar ticket',
+    message: 'Edite la descripción del problema',
+    defaultValue: ticket.descripcion || '',
+    multiline: true,
+    maxLength: 1000,
+    confirmText: 'Guardar',
+  });
 
-  // El usuario canceló el prompt.
+  // El usuario canceló el prompt (showPrompt devuelve null al cancelar).
   if (nuevaDescripcion === null) {
     return;
   }
@@ -728,7 +736,7 @@ async function handleEditTicket(ticketId) {
   const result = await updateTicket(ticketId, { descripcion: nuevaDescripcion });
 
   if (!result.ok) {
-    window.alert(result.error);
+    showToast(result.error, 'danger');
     return;
   }
 
@@ -754,14 +762,19 @@ async function handleDeleteTicket(ticketId) {
 
   // Comprobación de conveniencia del estado eliminable (Requisito 7.7).
   if (ticket.status !== DELETABLE_STATUS) {
-    window.alert('Solo es posible eliminar tickets en estado Pendiente.');
+    showToast('Solo es posible eliminar tickets en estado Pendiente.', 'warning');
     return;
   }
 
-  const confirmed = window.confirm(
-    `¿Está seguro de eliminar el ticket ${ticket.ticket_number || ''}? ` +
+  // Confirmación mediante el modal del sistema (reemplaza al confirm nativo).
+  const confirmed = await showConfirm({
+    title: 'Eliminar ticket',
+    message:
+      `¿Está seguro de eliminar el ticket ${ticket.ticket_number || ''}? ` +
       'Esta acción no se puede deshacer.',
-  );
+    confirmText: 'Eliminar',
+    variant: 'danger',
+  });
   if (!confirmed) {
     return;
   }
@@ -769,7 +782,7 @@ async function handleDeleteTicket(ticketId) {
   const result = await deleteTicket(ticketId, 'User');
 
   if (!result.ok) {
-    window.alert(result.error);
+    showToast(result.error, 'danger');
     return;
   }
 

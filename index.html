@@ -6,9 +6,14 @@
   <title>Tickets de Soporte — Soluciones Tenería</title>
 
   <!--
-    Hoja de estilos: main.css primero (variables globales, reset, utilidades)
-    y auth.css después (estilos específicos de login y registro).
+    Orden de hojas de estilo (importante):
+    1. Bootstrap 5.3.3 y Bootstrap Icons 1.11.3 desde jsDelivr (base y tipografía de iconos).
+    2. main.css: sistema de diseño global "Liquid Glass" (variables, reset, componentes).
+    3. auth.css: estilos específicos de la pantalla de login y registro.
+    main.css y auth.css se cargan DESPUÉS de Bootstrap para imponer el tema glass.
   -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/auth.css" />
 
@@ -34,6 +39,10 @@
   <main class="auth-card" aria-labelledby="auth-title">
     <!-- Encabezado corporativo -->
     <header class="auth-header">
+      <!-- Marca corporativa (icono, sin emoji) -->
+      <div class="auth-header__brand" aria-hidden="true">
+        <i class="bi bi-ticket-detailed"></i>
+      </div>
       <h1 id="auth-title" class="auth-header__title">Tickets de Soporte</h1>
       <p class="auth-header__subtitle">Soluciones Tenería</p>
     </header>
@@ -55,7 +64,7 @@
       Tres botones claramente diferenciados (Requisitos 2.2, 11.1).
     -->
     <section id="role-selection" aria-label="Selección de rol de acceso">
-      <p class="u-text-center u-text-muted u-text-sm">
+      <p class="auth-hint u-text-center u-text-muted u-text-sm">
         Selecciona tu tipo de acceso para continuar
       </p>
       <div class="role-selector">
@@ -64,24 +73,33 @@
           class="role-selector__btn"
           data-role="User"
         >
-          <span class="role-selector__icon" aria-hidden="true">👤</span>
-          SOY USUARIO
+          <!-- Icono de usuario (Bootstrap Icons, reemplaza al emoji anterior) -->
+          <span class="role-selector__icon" aria-hidden="true">
+            <i class="bi bi-person"></i>
+          </span>
+          <span class="role-selector__label">SOY USUARIO</span>
         </button>
         <button
           type="button"
           class="role-selector__btn"
           data-role="Agent"
         >
-          <span class="role-selector__icon" aria-hidden="true">🛠️</span>
-          SOY AGENTE
+          <!-- Icono de agente de soporte (headset) -->
+          <span class="role-selector__icon" aria-hidden="true">
+            <i class="bi bi-headset"></i>
+          </span>
+          <span class="role-selector__label">SOY AGENTE</span>
         </button>
         <button
           type="button"
           class="role-selector__btn"
           data-role="Admin"
         >
-          <span class="role-selector__icon" aria-hidden="true">🔑</span>
-          SOY ADMINISTRADOR
+          <!-- Icono de administrador (candado de seguridad) -->
+          <span class="role-selector__icon" aria-hidden="true">
+            <i class="bi bi-shield-lock"></i>
+          </span>
+          <span class="role-selector__label">SOY ADMINISTRADOR</span>
         </button>
       </div>
     </section>
@@ -94,11 +112,12 @@
     <section id="auth-area" aria-label="Formularios de acceso" hidden>
       <!-- Botón para regresar a la selección de rol -->
       <button type="button" class="auth-back" data-action="back">
-        &larr; Cambiar tipo de acceso
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        <span>Cambiar tipo de acceso</span>
       </button>
 
       <!-- Título dinámico con el rol seleccionado -->
-      <h2 id="auth-area-title" class="u-text-center"></h2>
+      <h2 id="auth-area-title" class="auth-area-title u-text-center"></h2>
 
       <!--
         Pestañas Iniciar Sesión / Registrarse. Solo se muestran para User y Agent

@@ -2,140 +2,237 @@
    dashboard-agent.css — Panel de Agente (Agent)
    Soluciones Tenería
    -------------------------------------------------------------
+   Estilos específicos del panel del equipo de soporte con
+   estética "Liquid Glass". Reutiliza las variables (design tokens)
+   y componentes definidos en main.css y el layout base de
+   dashboard-user.css.
+
    Contiene:
-   - Estilos específicos de la cola de tickets del Agent
-   - Diferenciación visual entre tickets asignados y sin asignar
-   - Formulario de resolución (campo solución + contador)
-   - Badges de estado del panel de Agent
-   Reutiliza el layout base y componentes definidos en
-   dashboard-user.css y main.css.
+   - Diferenciación visual glass entre tickets asignados y sin asignar
+   - Etiqueta de asignación (.assignment-tag) como badge tipo pill glass
+   - Iconos Bootstrap Icons integrados en la navegación y encabezados
+   - Panel de detalle del ticket (campos, valores y acciones)
+   - Formulario de resolución sobre superficie glass + contador
+   - Reglas responsive
    ============================================================= */
 
 /* -------------------------------------------------------------
-   1. COLA DE TICKETS — DIFERENCIACIÓN VISUAL
+   1. ICONOS EN NAVEGACIÓN Y ENCABEZADOS
    ------------------------------------------------------------- */
-/* Fila de ticket asignado al Agent autenticado */
-.ticket-row--assigned {
-  border-left: 4px solid var(--color-primary);
+/* Alinea los iconos Bootstrap Icons con el texto adyacente sin
+   alterar el layout base definido en dashboard-user.css. */
+.dashboard__nav-item .bi,
+.dashboard__section-title .bi,
+.notifications__header .bi,
+.no-results .bi {
+  margin-right: var(--space-xs);
+  vertical-align: -0.1em;
 }
 
-/* Fila de ticket sin asignar (disponible para aceptar) */
+/* Título de sección: separa ligeramente el icono para respirar */
+.dashboard__section-title .bi {
+  color: var(--color-primary);
+}
+
+/* Icono del estado vacío: tono atenuado, algo mayor */
+.no-results .bi {
+  display: block;
+  margin: 0 auto var(--space-sm);
+  font-size: 1.75rem;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* -------------------------------------------------------------
+   2. COLA DE TICKETS — DIFERENCIACIÓN VISUAL (GLASS)
+   ------------------------------------------------------------- */
+/* Fila de ticket asignado al Agent autenticado.
+   Se marca con un borde de acento primario y un tinte translúcido
+   muy sutil para reforzar la pertenencia sin romper el look glass. */
+.ticket-row--assigned td:first-child {
+  box-shadow: inset 4px 0 0 0 var(--color-primary);
+}
+
+.ticket-row--assigned {
+  background-color: rgba(37, 99, 168, 0.07);
+}
+
+.ticket-row--assigned:hover {
+  background-color: rgba(37, 99, 168, 0.14);
+}
+
+/* Fila de ticket sin asignar (disponible para aceptar).
+   Se usa un tinte "warning" translúcido en rgba (glass) en lugar
+   del color sólido anterior, con borde de acento del mismo tono. */
+.ticket-row--unassigned td:first-child {
+  box-shadow: inset 4px 0 0 0 var(--color-warning);
+}
+
 .ticket-row--unassigned {
-  border-left: 4px solid var(--color-warning);
-  background-color: var(--color-warning-bg);
+  background-color: rgba(245, 158, 11, 0.10);
 }
 
 .ticket-row--unassigned:hover {
-  background-color: #f6ebd1;
+  background-color: rgba(245, 158, 11, 0.18);
 }
 
-/* Etiqueta de asignación mostrada junto al número de ticket */
+/* -------------------------------------------------------------
+   3. ETIQUETA DE ASIGNACIÓN (BADGE PILL GLASS)
+   ------------------------------------------------------------- */
+/* Etiqueta mostrada junto al número de ticket para indicar si el
+   ticket es del propio Agent (--mine) o está libre (--free).
+   Se estiliza como badge tipo "pill" con superficie glass tintada. */
 .assignment-tag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
   padding: 2px var(--space-sm);
   font-size: 0.7rem;
   font-weight: var(--font-weight-bold);
+  line-height: 1.4;
   border-radius: var(--radius-pill);
+  border: 1px solid transparent;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
+/* Ticket asignado al Agent actual: acento primario translúcido */
 .assignment-tag--mine {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
+  background-color: var(--color-info-bg);
+  color: var(--color-primary-dark);
+  border-color: rgba(37, 99, 168, 0.35);
 }
 
+/* Ticket libre / sin asignar: tono warning translúcido */
 .assignment-tag--free {
-  background-color: var(--color-warning);
-  color: var(--color-text-inverse);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-color: rgba(180, 83, 9, 0.35);
 }
 
 /* -------------------------------------------------------------
-   2. BADGES DE ESTADO — PANEL DE AGENT
+   4. BADGES DE ESTADO — PANEL DE AGENT
    ------------------------------------------------------------- */
 /* Reutiliza .badge-status-* y .badge-estado-* de main.css.
-   Se documentan aquí los estados relevantes para el Agent:
+   Estados relevantes para el Agent:
    - Status:  Pendiente / En proceso / Finalizado
-   - Estado:  TICKET PENDIENTE / TICKET ACEPTADO / TICKET RESUELTO */
+   - Estado:  TICKET PENDIENTE / TICKET ACEPTADO / TICKET RESUELTO
+   No se redefinen aquí para mantener una única fuente de verdad. */
 
 /* -------------------------------------------------------------
-   3. PANEL DE DETALLE / RESOLUCIÓN DE TICKET
+   5. PANEL DE DETALLE / RESOLUCIÓN DE TICKET
    ------------------------------------------------------------- */
-/* Bloque de datos del ticket en el panel de detalle */
+/* Cada campo del detalle se presenta como par etiqueta/valor
+   apilado, con una fina separación translúcida entre campos. */
 .ticket-detail__field {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding-bottom: var(--space-sm);
   margin-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.ticket-detail__field:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .ticket-detail__label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .ticket-detail__value {
   font-size: var(--font-size-base);
   color: var(--color-text);
+  word-break: break-word;
 }
 
-/* Zona de acciones del Agent (ACEPTAR / resolver) */
+/* Zona de acciones del Agent (ACEPTAR / resolver).
+   Separador superior translúcido coherente con el tema glass. */
 .ticket-detail__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-md);
   padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border-strong);
 }
 
 /* -------------------------------------------------------------
-   4. FORMULARIO DE RESOLUCIÓN
+   6. FORMULARIO DE RESOLUCIÓN (SUPERFICIE GLASS)
    ------------------------------------------------------------- */
+/* Bloque de resolución presentado como tarjeta glass tintada para
+   destacarlo dentro del cuerpo del modal sin recargar la vista. */
 .resolve-form {
   margin-top: var(--space-lg);
-  padding: var(--space-md);
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-border);
+  padding: var(--space-lg);
+  background-color: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .resolve-form__title {
-  font-size: var(--font-size-base);
-  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-md);
   color: var(--color-secondary);
 }
 
-/* El textarea de solución hereda de .form-control (main.css) */
-.resolve-form textarea.form-control {
-  min-height: 120px;
+.resolve-form__title .bi {
+  color: var(--color-success);
 }
 
-/* Contador de caracteres de la solución (10–1000) */
+/* El textarea de solución hereda de .form-control (main.css) y se
+   le da una altura mínima cómoda para redactar la solución. */
+.resolve-form textarea.form-control {
+  min-height: 130px;
+  resize: vertical;
+}
+
+/* Contador de caracteres de la solución (rango 10–1000) */
 .resolve-form__counter {
   display: block;
   text-align: right;
   font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: var(--space-xs);
+  transition: color var(--transition-fast);
 }
 
 /* Contador fuera de rango: se resalta en color de peligro */
 .resolve-form__counter--invalid {
   color: var(--color-danger);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 /* -------------------------------------------------------------
-   5. RESPONSIVE
+   7. RESPONSIVE
    ------------------------------------------------------------- */
 @media (max-width: 600px) {
+  /* En móvil las acciones del detalle se apilan a ancho completo */
   .ticket-detail__actions {
     flex-direction: column;
   }
 
   .ticket-detail__actions .btn {
     width: 100%;
+  }
+
+  /* Reduce el padding de la tarjeta de resolución en pantallas pequeñas */
+  .resolve-form {
+    padding: var(--space-md);
   }
 }

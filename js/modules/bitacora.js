@@ -29,6 +29,7 @@
  */
 
 import { supabase } from '../config.js';
+import { showToast } from './ui-dialogs.js';
 
 // ---------------------------------------------------------------------------
 // Constantes del módulo
@@ -221,10 +222,9 @@ function showErrorMessage(message) {
       container.hidden = false;
       return;
     }
-    if (typeof window !== 'undefined' && typeof window.alert === 'function') {
-      window.alert(message);
-      return;
-    }
+    // Fallback: notificacion tipo toast del sistema (nunca dialogo nativo).
+    showToast(message, 'danger');
+    return;
   }
   // Último recurso: registrar en consola si no hay entorno de UI disponible.
   console.error(message);

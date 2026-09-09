@@ -2,15 +2,21 @@
    dashboard-admin.css — Panel de Administrador (Admin)
    Soluciones Tenería
    -------------------------------------------------------------
+   Estética "Liquid Glass" construida sobre los design tokens de
+   main.css (variables --color-*, --glass-*, --radius-*, --space-*).
+
    Contiene:
    - Cards de métricas del Dashboard (Pendiente, En proceso,
-     Finalizado, Total)
-   - Contenedor del gráfico de tickets por categoría
-   - Estilos de la Bitácora de incidentes y botón de exportación
-   - Tabla de gestión de usuarios (acciones bloquear / eliminar)
-   - Badges de estado del panel de Admin
-   Reutiliza el layout base y componentes definidos en
-   dashboard-user.css y main.css.
+     Finalizado, Total) sobre superficie glass con acento superior.
+   - Contenedor del gráfico de tickets por categoría (glass).
+   - Selector de rango de fechas.
+   - Barra de herramientas y tabla de la Bitácora de incidentes,
+     más el botón de exportación a PDF.
+   - Badges de estado de cuenta y de rol en la gestión de usuarios.
+   - Acciones por usuario y paginación.
+
+   Reutiliza el layout base (dashboard-user.css) y los componentes
+   compartidos (main.css). Aquí solo se afina lo propio del Admin.
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -18,22 +24,35 @@
    ------------------------------------------------------------- */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  /* Rejilla fluida: se adapta al ancho disponible sin romper. */
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
 }
 
-/* Card individual de métrica */
+/* Card individual de métrica sobre superficie glass translúcida.
+   El acento superior de color identifica el estado que representa. */
 .metric-card {
+  position: relative;
   padding: var(--space-lg);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   border-top: 4px solid var(--color-primary);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-/* Variantes por estado, alineadas con los badges de status */
+/* Leve elevación al pasar el cursor para dar sensación de superficie física. */
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Variantes por estado, alineadas con los badges de status del proyecto. */
 .metric-card--pendiente  { border-top-color: var(--color-warning); }
 .metric-card--en-proceso { border-top-color: var(--color-info); }
 .metric-card--finalizado { border-top-color: var(--color-success); }
@@ -45,7 +64,8 @@
   color: var(--color-text-muted);
   margin-bottom: var(--space-xs);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  font-weight: var(--font-weight-medium);
 }
 
 .metric-card__value {
@@ -60,24 +80,38 @@
    ------------------------------------------------------------- */
 .chart-container {
   padding: var(--space-lg);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   margin-bottom: var(--space-lg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .chart-container__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   font-size: var(--font-size-lg);
+  color: var(--color-secondary);
   margin-bottom: var(--space-md);
 }
 
-/* Área donde se dibuja el gráfico (SVG / Canvas nativo) */
+/* El icono del título hereda el color de acento corporativo. */
+.chart-container__title .bi {
+  color: var(--color-primary);
+}
+
+/* Área donde se dibuja el gráfico (SVG / Canvas nativo). */
 .chart-canvas {
   width: 100%;
   min-height: 260px;
 }
 
-/* Selector de rango de fechas del Dashboard */
+/* -------------------------------------------------------------
+   3. SELECTOR DE RANGO DE FECHAS
+   ------------------------------------------------------------- */
 .date-range {
   display: flex;
   flex-wrap: wrap;
@@ -92,8 +126,13 @@
   min-width: 160px;
 }
 
+/* El mensaje de error del rango ocupa toda la fila cuando aparece. */
+.date-range .form-error {
+  flex-basis: 100%;
+}
+
 /* -------------------------------------------------------------
-   3. BITÁCORA DE INCIDENTES
+   4. BITÁCORA DE INCIDENTES
    ------------------------------------------------------------- */
 .bitacora-toolbar {
   display: flex;
@@ -104,8 +143,14 @@
   margin-bottom: var(--space-md);
 }
 
-/* La tabla de bitácora reutiliza .table-wrapper y .data-table.
-   Las columnas de Descripción y Solución pueden ajustar su ancho. */
+/* El formulario de filtros dentro de la toolbar no debe forzar salto:
+   crece según su contenido y deja el botón de exportar a la derecha. */
+.bitacora-toolbar .date-range {
+  margin-bottom: 0;
+}
+
+/* La tabla de bitácora reutiliza .table-wrapper y .data-table de main.css.
+   Las columnas de Descripción y Solución permiten texto multilínea. */
 .bitacora-table .col-descripcion,
 .bitacora-table .col-solucion {
   white-space: normal;       /* permite salto de línea en textos largos */
@@ -113,58 +158,105 @@
   max-width: 280px;
 }
 
-/* Botón exportar PDF */
-.btn-export {
+/* -------------------------------------------------------------
+   5. BOTÓN EXPORTAR PDF
+   -------------------------------------------------------------
+   El HTML usa "btn btn-export": .btn ya aporta la forma pill, el
+   layout flex (icono + texto) y las transiciones desde main.css.
+   Aquí solo se define el color rojo coherente con el estilo danger,
+   evitando duplicar reglas de forma. */
+.btn.btn-export {
   background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--color-text-inverse);
+  box-shadow: 0 6px 18px rgba(185, 28, 28, 0.28);
+}
+
+.btn.btn-export:hover:not(:disabled) {
+  background-color: #991b1b;
+  border-color: #991b1b;
   color: var(--color-text-inverse);
 }
 
-.btn-export:hover:not(:disabled) {
-  background-color: #a51f1f;
-}
-
 /* -------------------------------------------------------------
-   4. GESTIÓN DE USUARIOS
+   6. GESTIÓN DE USUARIOS — BADGES DE ESTADO DE CUENTA
    ------------------------------------------------------------- */
-/* Badge del estado de la cuenta (activo / bloqueado) */
+/* Badge del estado de la cuenta (activo / bloqueado) con look glass. */
 .account-status {
   display: inline-block;
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-pill);
+  line-height: 1.2;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
-.account-status--active  { background-color: var(--color-success-bg); color: var(--color-success); }
-.account-status--blocked { background-color: var(--color-danger-bg);  color: var(--color-danger); }
+.account-status--active {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: rgba(21, 128, 61, 0.3);
+}
 
-/* Badge del rol del usuario */
+.account-status--blocked {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: rgba(185, 28, 28, 0.3);
+}
+
+/* -------------------------------------------------------------
+   7. GESTIÓN DE USUARIOS — BADGES DE ROL
+   ------------------------------------------------------------- */
 .role-badge {
   display: inline-block;
   padding: 2px var(--space-sm);
   font-size: 0.7rem;
   font-weight: var(--font-weight-bold);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  border: 1px solid transparent;
 }
 
-.role-badge--user  { background-color: var(--color-info-bg);    color: var(--color-info); }
-.role-badge--agent { background-color: var(--color-warning-bg); color: var(--color-warning); }
-.role-badge--admin { background-color: var(--color-secondary);  color: var(--color-text-inverse); }
+.role-badge--user {
+  background-color: var(--color-info-bg);
+  color: var(--color-info);
+  border-color: rgba(29, 78, 216, 0.3);
+}
 
-/* Acciones por usuario en la tabla de gestión */
+.role-badge--agent {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-color: rgba(180, 83, 9, 0.3);
+}
+
+.role-badge--admin {
+  background-color: rgba(30, 41, 59, 0.9);
+  color: var(--color-text-inverse);
+  border-color: rgba(30, 41, 59, 0.9);
+}
+
+/* -------------------------------------------------------------
+   8. GESTIÓN DE USUARIOS — ACCIONES POR FILA
+   ------------------------------------------------------------- */
 .user-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-xs);
 }
 
 /* -------------------------------------------------------------
-   5. PAGINACIÓN (Audit Log / Bitácora / Usuarios)
+   9. PAGINACIÓN (Audit Log / Bitácora / Usuarios)
    ------------------------------------------------------------- */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-lg);
 }
@@ -172,32 +264,52 @@
 .pagination__info {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  margin-top: var(--space-md);
+  text-align: center;
 }
 
 /* -------------------------------------------------------------
-   6. BADGES DE ESTADO — PANEL DE ADMIN
-   ------------------------------------------------------------- */
-/* Reutiliza .badge-status-* y .badge-estado-* de main.css para
-   mostrar el Status (Pendiente / En proceso / Finalizado) y el
-   Estado (TICKET PENDIENTE / TICKET ACEPTADO / TICKET RESUELTO)
-   en la tabla "Todos los Tickets". */
+   10. BADGES DE ESTADO — PANEL DE ADMIN
+   -------------------------------------------------------------
+   El Status (Pendiente / En proceso / Finalizado) y el Estado
+   (TICKET PENDIENTE / ACEPTADO / RESUELTO) de la tabla "Todos los
+   Tickets" reutilizan .badge-status-* / .badge-estado-* y
+   .status-badge--* definidos en main.css. No se redefinen aquí. */
 
 /* -------------------------------------------------------------
-   7. RESPONSIVE
+   11. RESPONSIVE
    ------------------------------------------------------------- */
 @media (max-width: 700px) {
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .date-range__field,
-  .bitacora-toolbar {
+  /* En pantallas medianas, filtros y toolbar ocupan todo el ancho
+     para facilitar la interacción táctil. */
+  .date-range__field {
     flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .bitacora-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* El botón de exportar se alinea al inicio cuando la toolbar apila. */
+  .bitacora-toolbar .btn.btn-export {
+    align-self: flex-start;
   }
 }
 
 @media (max-width: 420px) {
   .metrics-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Las acciones por usuario se apilan para no desbordar en móviles. */
+  .user-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

@@ -24,6 +24,7 @@
  */
 
 import { supabase } from '../config.js';
+import { showConfirm } from './ui-dialogs.js';
 
 // ---------------------------------------------------------------------------
 // Constantes del módulo
@@ -485,9 +486,9 @@ export async function unblockUser(userId) {
  * Elimina permanentemente una cuenta de usuario (rol User o Agent) invocando
  * DELETE sobre la Edge Function, previa confirmación en la UI.
  *
- * La confirmación se solicita mediante `window.confirm`. Si el usuario cancela,
- * se retorna `{ cancelled: true }` sin invocar el backend. El backend rechaza
- * (HTTP 403) la eliminación de cuentas Admin.
+ * La confirmación se solicita mediante `showConfirm` (modal del sistema). Si el
+ * usuario cancela, se retorna `{ cancelled: true }` sin invocar el backend. El
+ * backend rechaza (HTTP 403) la eliminación de cuentas Admin.
  *
  * @param {string} userId - UUID del usuario a eliminar.
  * @param {string} [displayName] - Nombre a mostrar en el mensaje de confirmación.
@@ -498,11 +499,15 @@ export async function deleteUser(userId, displayName) {
     return { ok: false, data: null, error: 'Identificador de usuario ausente.', status: null };
   }
 
-  // Confirmación previa en la UI. Se usa el nombre si está disponible.
+  // Confirmación previa en la UI mediante el modal del sistema (Liquid Glass),
+  // en lugar del diálogo nativo del navegador. Se usa el nombre si está disponible.
   const label = displayName ? `"${displayName}"` : 'esta cuenta';
-  const confirmed = window.confirm(
-    `¿Está seguro de eliminar ${label}? Esta acción es permanente y no se puede deshacer.`
-  );
+  const confirmed = await showConfirm({
+    title: 'Eliminar cuenta',
+    message: `¿Está seguro de eliminar ${label}? Esta acción es permanente y no se puede deshacer.`,
+    confirmText: 'Eliminar',
+    variant: 'danger',
+  });
 
   if (!confirmed) {
     return { ok: false, cancelled: true, data: null, error: null, status: null };

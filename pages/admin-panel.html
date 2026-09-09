@@ -7,10 +7,18 @@
 
   <!--
     Hoja de estilos en orden de cascada:
-      1. main.css            → variables, reset y componentes compartidos.
-      2. dashboard-user.css  → layout base del dashboard (header + sidebar + main).
-      3. dashboard-admin.css → estilos propios del panel de Admin.
+      1. Bootstrap 5.3.3     → base de utilidades (se carga primero para que
+                               main.css pueda re-estilizar las clases que
+                               colisionan, como .btn, .form-control, .badge).
+      2. Bootstrap Icons     → set de iconos vectoriales (bi-*). Sin emojis.
+      3. main.css            → variables, reset y componentes compartidos.
+      4. dashboard-user.css  → layout base del dashboard (header + sidebar + main).
+      5. dashboard-admin.css → estilos propios del panel de Admin.
   -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="../css/main.css" />
   <link rel="stylesheet" href="../css/dashboard-user.css" />
   <link rel="stylesheet" href="../css/dashboard-admin.css" />
@@ -34,13 +42,25 @@
       <div class="dashboard__brand">Soluciones Tenería</div>
       <nav aria-label="Secciones del panel de administración">
         <a href="#dashboard" class="dashboard__nav-item dashboard__nav-item--active"
-           data-section="dashboard" aria-current="page">Dashboard</a>
+           data-section="dashboard" aria-current="page">
+          <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </a>
         <a href="#tickets" class="dashboard__nav-item"
-           data-section="tickets">Todos los Tickets</a>
+           data-section="tickets">
+          <i class="bi bi-card-list" aria-hidden="true"></i>
+          <span>Todos los Tickets</span>
+        </a>
         <a href="#bitacora" class="dashboard__nav-item"
-           data-section="bitacora">Bitácora de Incidentes</a>
+           data-section="bitacora">
+          <i class="bi bi-journal-text" aria-hidden="true"></i>
+          <span>Bitácora de Incidentes</span>
+        </a>
         <a href="#usuarios" class="dashboard__nav-item"
-           data-section="usuarios">Gestión de Usuarios</a>
+           data-section="usuarios">
+          <i class="bi bi-people" aria-hidden="true"></i>
+          <span>Gestión de Usuarios</span>
+        </a>
       </nav>
     </aside>
 
@@ -62,7 +82,7 @@
           <button type="button" class="notifications__bell" id="notifications-bell"
                   aria-haspopup="true" aria-expanded="false"
                   aria-label="Notificaciones">
-            <span aria-hidden="true">🔔</span>
+            <i class="bi bi-bell" aria-hidden="true"></i>
             <!-- Badge de no leídas; se oculta cuando no hay notificaciones. -->
             <span class="notifications__badge" data-count="0" hidden></span>
           </button>
@@ -76,7 +96,8 @@
 
         <!-- Cierre de sesión; el manejador lo enlaza admin-panel.js. -->
         <button type="button" class="btn btn-secondary btn-sm" id="logout-button">
-          Cerrar sesión
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+          <span>Cerrar sesión</span>
         </button>
       </div>
     </header>
@@ -94,7 +115,10 @@
            ================================================================= -->
       <section class="dashboard__section" id="section-dashboard"
                aria-labelledby="dashboard-title">
-        <h2 class="dashboard__section-title" id="dashboard-title">Dashboard</h2>
+        <h2 class="dashboard__section-title" id="dashboard-title">
+          <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          Dashboard
+        </h2>
 
         <!-- Selector de rango de fechas para filtrar las métricas. -->
         <form class="date-range" id="dashboard-date-range">
@@ -121,7 +145,10 @@
 
         <!-- Gráfico de tickets por categoría dibujado con SVG nativo. -->
         <div class="chart-container">
-          <h3 class="chart-container__title">Tickets por categoría</h3>
+          <h3 class="chart-container__title">
+            <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+            Tickets por categoría
+          </h3>
           <div class="chart-canvas" id="chart-canvas"></div>
         </div>
       </section>
@@ -132,7 +159,10 @@
            ================================================================= -->
       <section class="dashboard__section" id="section-tickets"
                aria-labelledby="tickets-title" hidden>
-        <h2 class="dashboard__section-title" id="tickets-title">Todos los Tickets</h2>
+        <h2 class="dashboard__section-title" id="tickets-title">
+          <i class="bi bi-card-list" aria-hidden="true"></i>
+          Todos los Tickets
+        </h2>
 
         <!-- Filtros de la tabla de tickets. -->
         <form class="filters" id="tickets-filters">
@@ -197,7 +227,10 @@
            ================================================================= -->
       <section class="dashboard__section" id="section-bitacora"
                aria-labelledby="bitacora-title" hidden>
-        <h2 class="dashboard__section-title" id="bitacora-title">Bitácora de Incidentes</h2>
+        <h2 class="dashboard__section-title" id="bitacora-title">
+          <i class="bi bi-journal-text" aria-hidden="true"></i>
+          Bitácora de Incidentes
+        </h2>
 
         <!-- Barra de herramientas: filtros de fecha + botón exportar PDF. -->
         <div class="bitacora-toolbar">
@@ -217,7 +250,8 @@
 
           <!-- Botón de exportación a PDF; su manejador lo enlaza admin-panel.js. -->
           <button type="button" class="btn btn-export" id="bitacora-export">
-            Exportar PDF
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+            <span>Exportar PDF</span>
           </button>
         </div>
 
@@ -259,7 +293,10 @@
            ================================================================= -->
       <section class="dashboard__section" id="section-usuarios"
                aria-labelledby="usuarios-title" hidden>
-        <h2 class="dashboard__section-title" id="usuarios-title">Gestión de Usuarios</h2>
+        <h2 class="dashboard__section-title" id="usuarios-title">
+          <i class="bi bi-people" aria-hidden="true"></i>
+          Gestión de Usuarios
+        </h2>
 
         <!--
           Contenedor de la tabla de usuarios. js/modules/user-management.js
@@ -284,5 +321,9 @@
   -->
   <script type="module" src="../js/env.js"></script>
   <script type="module" src="../js/pages/admin-panel.js"></script>
+
+  <!-- Bundle de Bootstrap (Popper incluido). Se carga al final para no
+       bloquear el render inicial. Los módulos ES anteriores no dependen de él. -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

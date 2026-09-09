@@ -18,11 +18,22 @@
     <title>Panel de Agente — Soporte Tenería</title>
 
     <!--
-      Orden de hojas de estilo:
-      1. main.css            → variables, reset y componentes compartidos.
-      2. dashboard-user.css  → layout base del dashboard reutilizado por roles.
-      3. dashboard-agent.css → estilos específicos del panel de Agent.
+      Orden de hojas de estilo (importante para la cascada):
+      1. Bootstrap 5.3.3     → base de utilidades y reset de terceros.
+      2. Bootstrap Icons     → set de iconos vectoriales (bi-*).
+      3. main.css            → variables, reset y componentes compartidos
+                               (re-estiliza clases que colisionan con Bootstrap).
+      4. dashboard-user.css  → layout base del dashboard reutilizado por roles.
+      5. dashboard-agent.css → estilos específicos del panel de Agent.
     -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
     <link rel="stylesheet" href="../css/main.css" />
     <link rel="stylesheet" href="../css/dashboard-user.css" />
     <link rel="stylesheet" href="../css/dashboard-agent.css" />
@@ -49,6 +60,7 @@
             id="nav-queue"
             aria-current="page"
           >
+            <i class="bi bi-inbox-fill" aria-hidden="true"></i>
             Cola de Tickets
           </a>
         </nav>
@@ -77,7 +89,7 @@
               aria-expanded="false"
               aria-controls="notifications-dropdown"
             >
-              <span aria-hidden="true">&#128276;</span>
+              <i class="bi bi-bell-fill" aria-hidden="true"></i>
               <span
                 class="notifications__badge"
                 id="notifications-badge"
@@ -94,13 +106,17 @@
               aria-label="Lista de notificaciones"
               hidden
             >
-              <div class="notifications__header">Notificaciones</div>
+              <div class="notifications__header">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                Notificaciones
+              </div>
               <ul class="notifications__list" id="notifications-list"></ul>
             </div>
           </div>
 
           <!-- Cierre de sesión; el manejador se registra en agent-panel.js -->
           <button type="button" class="btn btn-secondary btn-sm" id="logout-btn">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
             Cerrar sesión
           </button>
         </div>
@@ -121,7 +137,10 @@
           id="queue-section"
           aria-labelledby="queue-title"
         >
-          <h2 class="dashboard__section-title" id="queue-title">Cola de Tickets</h2>
+          <h2 class="dashboard__section-title" id="queue-title">
+            <i class="bi bi-list-task" aria-hidden="true"></i>
+            Cola de Tickets
+          </h2>
 
           <!-- Contenedor de mensajes de feedback global de la sección
                (errores de carga, confirmaciones). Lo gestiona agent-panel.js. -->
@@ -154,6 +173,7 @@
 
           <!-- Mensaje mostrado cuando no hay tickets en la cola. -->
           <p class="no-results" id="tickets-empty" hidden>
+            <i class="bi bi-inbox" aria-hidden="true"></i>
             No hay tickets en la cola por el momento.
           </p>
         </section>
@@ -178,6 +198,7 @@
       <div class="modal">
         <div class="modal__header">
           <h2 class="modal__header-title" id="ticket-detail-title">
+            <i class="bi bi-ticket-detailed" aria-hidden="true"></i>
             Detalle del ticket
           </h2>
           <button
@@ -186,7 +207,7 @@
             id="ticket-detail-close"
             aria-label="Cerrar detalle del ticket"
           >
-            <span aria-hidden="true">&times;</span>
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
           </button>
         </div>
 
@@ -245,6 +266,7 @@
               id="accept-btn"
               hidden
             >
+              <i class="bi bi-check-circle" aria-hidden="true"></i>
               ACEPTAR
             </button>
           </div>
@@ -260,7 +282,10 @@
                envío con resolveTicket().
                --------------------------------------------------------------- -->
           <form class="resolve-form" id="resolve-form" novalidate hidden>
-            <h3 class="resolve-form__title">Resolver ticket</h3>
+            <h3 class="resolve-form__title">
+              <i class="bi bi-pencil-square" aria-hidden="true"></i>
+              Resolver ticket
+            </h3>
 
             <div class="form-group">
               <label class="form-label" for="solucion-aplicada">
@@ -294,6 +319,7 @@
 
             <div class="ticket-detail__actions">
               <button type="submit" class="btn btn-success" id="resolve-btn">
+                <i class="bi bi-check2-all" aria-hidden="true"></i>
                 Marcar como RESUELTO
               </button>
             </div>
@@ -307,5 +333,12 @@
       imports de js/modules/*. Debe ir después de ../js/env.js.
     -->
     <script type="module" src="../js/pages/agent-panel.js"></script>
+
+    <!--
+      Bundle JS de Bootstrap (Popper incluido). Necesario para componentes
+      interactivos de Bootstrap. Se carga al final del body para no bloquear
+      el render y después del módulo de orquestación del panel.
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

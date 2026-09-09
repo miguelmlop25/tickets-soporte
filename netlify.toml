@@ -54,9 +54,11 @@
       connect-src 'self'
         https://*.supabase.co
         wss://*.supabase.co;
-      style-src 'self' 'unsafe-inline';
+      style-src 'self' 'unsafe-inline'
+        https://cdn.jsdelivr.net;
       img-src 'self' data:;
-      font-src 'self';
+      font-src 'self' data:
+        https://cdn.jsdelivr.net;
       frame-ancestors 'none';
       base-uri 'self';
       form-action 'self';
