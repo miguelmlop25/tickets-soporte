@@ -40,9 +40,9 @@ import { supabase } from '../config.js';
  * en `window.jspdf` y registran el plugin autoTable sobre jsPDF.
  */
 const JSPDF_CDN_URL =
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js';
+  'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
 const AUTOTABLE_CDN_URL =
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.5/jspdf.plugin.autotable.min.js';
+  'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js';
 
 /**
  * Encabezados de las 10 columnas de la Bitácora de incidentes, en el orden
