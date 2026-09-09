@@ -141,8 +141,9 @@ async function parseFunctionError(error) {
  * @param {object} payload - Cuerpo JSON de la petición.
  * @returns {Promise<{ ok: boolean, data: object|null, error: string|null, status: number|null }>}
  */
-export async function invokeEdgeFunction(functionName, payload) {
+export async function invokeEdgeFunction(functionName, payload, method = 'POST') {
   const { data, error } = await supabase.functions.invoke(functionName, {
+    method,
     body: payload,
   });
 
@@ -564,10 +565,14 @@ export async function acceptTicket(ticketId) {
     };
   }
 
-  const result = await invokeEdgeFunction('update-ticket-status', {
-    ticket_id: ticketId,
-    action: 'ACEPTAR',
-  });
+  const result = await invokeEdgeFunction(
+    'update-ticket-status',
+    {
+      ticket_id: ticketId,
+      action: 'ACEPTAR',
+    },
+    'PATCH',
+  );
 
   // Mensaje descriptivo específico para el caso 403 en el contexto de aceptar.
   if (!result.ok && result.status === 403) {
@@ -620,10 +625,14 @@ export async function resolveTicket(ticketId, solucion) {
     };
   }
 
-  return invokeEdgeFunction('resolve-ticket', {
-    ticket_id: ticketId,
-    solucion_aplicada: validation.sanitized,
-  });
+  return invokeEdgeFunction(
+    'resolve-ticket',
+    {
+      ticket_id: ticketId,
+      solucion_aplicada: validation.sanitized,
+    },
+    'PATCH',
+  );
 }
 
 // ---------------------------------------------------------------------------
