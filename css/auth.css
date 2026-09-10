@@ -34,6 +34,39 @@
   padding: var(--space-lg);
 }
 
+/* Contenedor de dos columnas: columna de marca (logotipo) a la izquierda y
+   tarjeta de acceso a la derecha. Se centra en la pantalla y las columnas se
+   alinean por su centro vertical para un conjunto equilibrado. */
+.auth-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xl);
+  width: 100%;
+  max-width: 860px;
+}
+
+/* Columna izquierda: panel del logotipo corporativo. Ocupa un espacio propio
+   junto a la tarjeta para dar mayor presencia visual al inicio de sesion. */
+.auth-brandside {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Logotipo mostrado en la columna izquierda. Mantiene su proporcion y limita
+   su tamano para acompanar la altura de la tarjeta sin dominar el diseno. */
+.auth-brandside__logo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 260px;
+  max-height: 320px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 26px rgba(37, 99, 168, 0.25));
+}
+
 /* -------------------------------------------------------------
    2. TARJETA CENTRAL GLASS + ENCABEZADO
    ------------------------------------------------------------- */
@@ -57,18 +90,6 @@
   margin-bottom: var(--space-lg);
 }
 
-/* Imagen/logotipo corporativo en la parte superior de la tarjeta de login.
-   Centrada, con ancho maximo controlado y altura automatica para respetar
-   la proporcion de la imagen que se coloque (placeholder o logotipo real). */
-.auth-header__logo {
-  display: block;
-  max-width: 200px;
-  max-height: 96px;
-  width: auto;
-  height: auto;
-  margin: 0 auto var(--space-md);
-  object-fit: contain;
-}
 
 /* Marca corporativa: icono dentro de un círculo glass con acento */
 .auth-header__brand {
@@ -452,6 +473,20 @@
 /* -------------------------------------------------------------
    8. RESPONSIVE
    ------------------------------------------------------------- */
+/* En pantallas medianas y pequenas, la columna de marca y la tarjeta se apilan
+   verticalmente (logotipo arriba, tarjeta debajo) para conservar la legibilidad. */
+@media (max-width: 768px) {
+  .auth-shell {
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-width: 460px;
+  }
+
+  .auth-brandside__logo {
+    max-height: 140px;
+  }
+}
+
 @media (max-width: 480px) {
   .auth-page {
     padding: var(--space-md);
@@ -459,6 +494,10 @@
 
   .auth-card {
     padding: var(--space-lg);
+  }
+
+  .auth-brandside__logo {
+    max-height: 110px;
   }
 
   /* En pantallas pequeñas los botones de rol se apilan en una columna */

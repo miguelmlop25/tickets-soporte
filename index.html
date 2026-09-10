@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tickets de Soporte — Soluciones Tenería</title>
-  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg" />
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
 
   <!--
     Orden de hojas de estilo (importante):
@@ -37,18 +37,24 @@
   <script type="module" src="js/pages/login-page.js"></script>
 </head>
 <body class="auth-page">
-  <main class="auth-card" aria-labelledby="auth-title">
-    <!-- Encabezado corporativo -->
-    <header class="auth-header">
-      <!-- Imagen/logotipo corporativo en la parte superior de la tarjeta.
-           Es una imagen de ejemplo (placeholder); sustituya el archivo
-           assets/img/login-logo.svg (o cambie el atributo src) por el
-           logotipo real. Se admite SVG, PNG o JPG. -->
+  <!--
+    Contenedor de dos columnas: a la izquierda el logotipo corporativo
+    (columna de marca) y a la derecha la tarjeta central de acceso. En
+    pantallas pequenas ambas columnas se apilan verticalmente.
+  -->
+  <div class="auth-shell">
+    <!-- Columna izquierda: logotipo corporativo destacado. -->
+    <aside class="auth-brandside" aria-hidden="true">
       <img
-        class="auth-header__logo"
-        src="assets/img/login-logo.svg"
+        class="auth-brandside__logo"
+        src="assets/img/login-logo.png"
         alt="Logotipo de Soluciones Tenería"
       />
+    </aside>
+
+    <main class="auth-card" aria-labelledby="auth-title">
+    <!-- Encabezado corporativo -->
+    <header class="auth-header">
       <!-- Marca corporativa (icono, sin emoji) -->
       <div class="auth-header__brand" aria-hidden="true">
         <i class="bi bi-ticket-detailed"></i>
@@ -308,6 +314,7 @@
         </button>
       </form>
     </section>
-  </main>
+    </main>
+  </div>
 </body>
 </html>
