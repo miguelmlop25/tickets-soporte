@@ -21,8 +21,19 @@
 // Constantes del dominio
 // ---------------------------------------------------------------------------
 
-/** Dominio corporativo permitido para el registro de cuentas. */
-export const CORPORATE_DOMAIN = '@solucionesteneria.com';
+/**
+ * Dominios corporativos permitidos para el registro de cuentas.
+ * Para agregar o quitar dominios, edite unicamente esta lista. La validacion
+ * del backend (trigger handle_new_user, migracion 007) debe reflejar los mismos
+ * dominios para mantener la coherencia entre cliente y servidor.
+ */
+export const CORPORATE_DOMAINS = ['@solucionesteneria.com', '@rbpuebla.mx'];
+
+/**
+ * Dominio corporativo principal. Se conserva por compatibilidad con codigo que
+ * pudiera importarlo; la validacion real usa la lista CORPORATE_DOMAINS.
+ */
+export const CORPORATE_DOMAIN = CORPORATE_DOMAINS[0];
 
 /** Longitud mínima requerida para la contraseña. */
 const MIN_PASSWORD_LENGTH = 8;
@@ -170,10 +181,12 @@ export function validateEmail(email) {
   // La parte local no debe contener espacios en blanco internos.
   const localIsValid = localPart.length > 0 && !/\s/.test(localPart);
 
-  // El dominio debe coincidir exactamente (case-insensitive) con el corporativo.
-  const endsWithDomain = normalized
-    .toLowerCase()
-    .endsWith(CORPORATE_DOMAIN.toLowerCase());
+  // El dominio debe coincidir (case-insensitive) con alguno de los dominios
+  // corporativos permitidos.
+  const normalizedLower = normalized.toLowerCase();
+  const endsWithDomain = CORPORATE_DOMAINS.some((dominio) =>
+    normalizedLower.endsWith(dominio.toLowerCase()),
+  );
 
   const isValid = hasSingleAt && localIsValid && endsWithDomain;
 

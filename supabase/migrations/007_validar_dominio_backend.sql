@@ -5,22 +5,23 @@
 -- Objetivo:
 --   Reforzar la validación del dominio corporativo en el backend
 --   (además de la validación del frontend en validators.js), de modo
---   que ningún usuario pueda registrarse con un dominio distinto al
---   permitido aunque manipule el cliente. Esta es la barrera de
+--   que ningún usuario pueda registrarse con un dominio distinto a los
+--   permitidos aunque manipule el cliente. Esta es la barrera de
 --   seguridad autoritativa (Requisitos 1.1, 1.2, 11.5).
 --
 -- Cómo funciona:
 --   Reemplaza la función handle_new_user() (definida en la migración
 --   005) para que, antes de crear el perfil, verifique que el correo
---   pertenezca al dominio corporativo. Si no coincide, lanza una
---   excepción que aborta el registro completo (no se crea el perfil
---   ni queda una cuenta utilizable).
+--   pertenezca a alguno de los dominios corporativos permitidos. Si no
+--   coincide con ninguno, lanza una excepción que aborta el registro
+--   completo (no se crea el perfil ni queda una cuenta utilizable).
 --
--- Cómo cambiar el dominio en el futuro:
---   Modifique el valor de la constante v_dominio_permitido más abajo
---   (por ejemplo '@nuevodominio.com') y vuelva a ejecutar esta misma
---   migración en el SQL Editor de Supabase. Debe coincidir con el
---   valor de CORPORATE_DOMAIN en js/modules/validators.js.
+-- Cómo cambiar los dominios en el futuro:
+--   Edite el arreglo v_dominios_permitidos más abajo (agregue o quite
+--   dominios, por ejemplo ARRAY['@dominio1.com', '@dominio2.mx']) y
+--   vuelva a ejecutar esta misma migración en el SQL Editor de Supabase.
+--   Debe coincidir con la lista CORPORATE_DOMAINS de
+--   js/modules/validators.js en el frontend.
 --
 -- Dependencia: debe ejecutarse después de 005_handle_new_user.sql
 -- =============================================================
@@ -35,17 +36,27 @@ DECLARE
   v_full_name TEXT;
   v_role_raw  TEXT;
   v_role      user_role;
-  -- Dominio corporativo permitido. Debe coincidir con CORPORATE_DOMAIN
-  -- del frontend (js/modules/validators.js). Cambiar aquí al actualizar.
-  v_dominio_permitido TEXT := '@solucionesteneria.com';
+  -- Dominios corporativos permitidos. Deben coincidir con CORPORATE_DOMAINS
+  -- del frontend (js/modules/validators.js). Editar esta lista al actualizar.
+  v_dominios_permitidos TEXT[] := ARRAY['@solucionesteneria.com', '@rbpuebla.mx'];
+  v_email_lower TEXT := lower(NEW.email);
+  v_dominio_ok  BOOLEAN := FALSE;
+  v_dominio     TEXT;
 BEGIN
   -- ---------------------------------------------------------------
   -- Validación de dominio en el backend (barrera autoritativa).
-  -- Se rechaza cualquier correo que no termine con el dominio permitido.
+  -- Se acepta el correo si termina con alguno de los dominios permitidos.
   -- La comparación es insensible a mayúsculas/minúsculas.
   -- ---------------------------------------------------------------
-  IF lower(NEW.email) NOT LIKE ('%' || lower(v_dominio_permitido)) THEN
-    RAISE EXCEPTION 'DOMINIO_NO_PERMITIDO: solo se permiten correos del dominio %', v_dominio_permitido
+  FOREACH v_dominio IN ARRAY v_dominios_permitidos LOOP
+    IF v_email_lower LIKE ('%' || lower(v_dominio)) THEN
+      v_dominio_ok := TRUE;
+      EXIT;
+    END IF;
+  END LOOP;
+
+  IF NOT v_dominio_ok THEN
+    RAISE EXCEPTION 'DOMINIO_NO_PERMITIDO: solo se permiten correos de los dominios %', array_to_string(v_dominios_permitidos, ', ')
       USING ERRCODE = 'P0001';
   END IF;
 
