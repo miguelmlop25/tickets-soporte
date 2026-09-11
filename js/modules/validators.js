@@ -95,6 +95,7 @@ export const SUBCATEGORIAS = {
     'Revisión Servidor',
     'Apagado de Servidor',
     'Escritorio Remoto',
+    'Nuevo usuario',
   ],
   SEGURIDAD: [
     'Respaldo de Información',

@@ -369,7 +369,12 @@ function populateSubcategorias(categoria) {
 
 /**
  * Consulta los perfiles con rol Agent y puebla el select de "Agente asignado".
- * La opción "Sin asignar" (valor vacío) se conserva como primera opción.
+ * El agente es obligatorio al crear un ticket:
+ *   - Si existe mas de un agente, se muestra un placeholder "Seleccione un
+ *     agente" que obliga a elegir uno.
+ *   - Si existe exactamente un agente, se selecciona por defecto y se retira el
+ *     placeholder para agilizar la creacion del ticket.
+ *   - Si no existe ningun agente, se informa mediante un placeholder.
  */
 async function loadAgents() {
   if (!agenteSelect) {
@@ -379,22 +384,35 @@ async function loadAgents() {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, full_name')
-    .eq('role', 'Agent');
+    .eq('role', 'Agent')
+    .order('full_name', { ascending: true });
 
   if (error) {
-    // No se oculta el error: la creación de ticket sigue siendo posible sin
-    // asignar agente (campo opcional), pero se informa para diagnóstico.
+    // Se informa para diagnostico. El placeholder permanece y la validacion del
+    // formulario impedira crear el ticket sin un agente valido.
     console.error('[user-panel] Error al cargar agentes:', error.message);
     return;
   }
 
   const agents = Array.isArray(data) ? data : [];
+
+  // Poblar las opciones de agentes tras el placeholder ya presente en el HTML.
   for (const agent of agents) {
     const option = document.createElement('option');
     option.value = agent.id;
-    // textContent evita inyección de HTML a partir del nombre almacenado.
+    // textContent evita inyeccion de HTML a partir del nombre almacenado.
     option.textContent = agent.full_name || 'Agente sin nombre';
     agenteSelect.appendChild(option);
+  }
+
+  // Si solo hay un agente, seleccionarlo por defecto y retirar el placeholder
+  // para que quede elegido automaticamente.
+  if (agents.length === 1) {
+    const placeholder = agenteSelect.querySelector('option[value=""]');
+    if (placeholder) {
+      placeholder.remove();
+    }
+    agenteSelect.value = agents[0].id;
   }
 }
 
@@ -624,17 +642,26 @@ function setupNewTicketForm() {
     clearFieldErrors();
 
     const formData = new FormData(newTicketForm);
+    const agenteSeleccionado = formData.get('agente_asignado') || '';
     const ticketData = {
       area: formData.get('area') || '',
       tipo_asistencia: formData.get('tipo_asistencia') || '',
       categoria: formData.get('categoria') || '',
       subcategoria: formData.get('subcategoria') || '',
       descripcion: formData.get('descripcion') || '',
-      agente_asignado: formData.get('agente_asignado') || null,
+      agente_asignado: agenteSeleccionado || null,
     };
 
     // Validación en el cliente para retroalimentación inmediata por campo.
     const validation = validateTicketFields(ticketData);
+
+    // El agente asignado es obligatorio en el panel de Usuario. Se valida aqui
+    // (no en validateTicketFields, que lo trata como opcional para otras vistas).
+    if (!agenteSeleccionado) {
+      validation.errors.agente_asignado = 'Debe seleccionar un agente asignado.';
+      validation.isValid = false;
+    }
+
     if (!validation.isValid) {
       showFieldErrors(validation.errors);
       return;

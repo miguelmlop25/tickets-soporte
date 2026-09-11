@@ -301,11 +301,12 @@
               <span class="form-error" id="error-subcategoria" role="alert"></span>
             </div>
 
-            <!-- Agente asignado (opcional). Poblado dinámicamente por user-panel.js. -->
+            <!-- Agente asignado (obligatorio). Poblado dinámicamente por user-panel.js.
+                 Si solo existe un agente, user-panel.js lo selecciona por defecto. -->
             <div class="form-group">
-              <label class="form-label" for="ticket-agente">Agente asignado (opcional)</label>
-              <select class="form-control" id="ticket-agente" name="agente_asignado">
-                <option value="">Sin asignar</option>
+              <label class="form-label" for="ticket-agente">Agente asignado <span aria-hidden="true">*</span></label>
+              <select class="form-control" id="ticket-agente" name="agente_asignado" required>
+                <option value="">Seleccione un agente</option>
               </select>
               <span class="form-error" id="error-agente" role="alert"></span>
             </div>

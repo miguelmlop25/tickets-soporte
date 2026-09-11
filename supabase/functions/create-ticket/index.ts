@@ -27,6 +27,10 @@ import {
   RATE_LIMIT_API,
   rateLimitExceededResponse,
 } from "../_shared/rate-limiter.ts";
+import {
+  sendEmail,
+  buildNewTicketEmailForAgent,
+} from "../_shared/email.ts";
 
 // ---------------------------------------------------------------------------
 // Mapa de subcategorías válidas por categoría (fuente de verdad del backend)
@@ -78,6 +82,7 @@ const SUBCATEGORIAS: Record<string, string[]> = {
     "Revisión Servidor",
     "Apagado de Servidor",
     "Escritorio Remoto",
+    "Nuevo usuario",
   ],
   SEGURIDAD: [
     "Respaldo de Información",
@@ -459,7 +464,69 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  // 7. Respuesta exitosa HTTP 201
+  // 7. Notificacion por correo al agente asignado (Opcion A: no bloquea).
+  //    Si hay agente asignado, se le envia un correo con todos los datos del
+  //    ticket, el numero generado y el correo del usuario que lo creo. Cualquier
+  //    fallo se registra en logs y NO afecta la creacion del ticket ya realizada.
+  if (agenteAsignado) {
+    try {
+      // Datos del agente (destinatario) y del usuario (solicitante).
+      const [{ data: agentProfile }, { data: userProfile }] = await Promise.all([
+        supabaseAdmin
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", agenteAsignado)
+          .single(),
+        supabaseAdmin
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", user_id)
+          .single(),
+      ]);
+
+      if (agentProfile?.email) {
+        const html = buildNewTicketEmailForAgent({
+          agentName: agentProfile.full_name ?? "Agente",
+          userName: userProfile?.full_name ?? "Usuario",
+          userEmail: userProfile?.email ?? "",
+          ticket: {
+            ticket_number: result.ticket_number,
+            area,
+            tipo_asistencia: tipoAsistencia,
+            categoria,
+            subcategoria,
+            descripcion,
+            estado: "TICKET PENDIENTE",
+            status: "Pendiente",
+          },
+        });
+
+        const sent = await sendEmail(
+          agentProfile.email,
+          `Nuevo ticket por atender: ${result.ticket_number}`,
+          html,
+        );
+
+        if (!sent) {
+          console.error(
+            `[create-ticket] No se pudo enviar el correo al agente para el ticket ${result.ticket_number}.`,
+          );
+        }
+      } else {
+        console.error(
+          "[create-ticket] El agente asignado no tiene correo; se omite la notificacion por correo.",
+        );
+      }
+    } catch (emailError) {
+      // Opcion A: el fallo del correo no interrumpe la creacion del ticket.
+      console.error(
+        "[create-ticket] Error inesperado al enviar el correo de notificacion:",
+        emailError,
+      );
+    }
+  }
+
+  // 8. Respuesta exitosa HTTP 201
   return new Response(
     JSON.stringify({
       ticket_id: result.ticket_id,

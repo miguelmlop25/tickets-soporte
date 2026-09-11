@@ -28,6 +28,10 @@ import {
   RATE_LIMIT_API,
   rateLimitExceededResponse,
 } from "../_shared/rate-limiter.ts";
+import {
+  sendEmail,
+  buildTicketAcceptedEmailForUser,
+} from "../_shared/email.ts";
 
 // ---------------------------------------------------------------------------
 // Tipos internos
@@ -260,7 +264,72 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   // -------------------------------------------------------
-  // 9. Retornar respuesta exitosa con los datos actualizados
+  // 9. Notificacion por correo al usuario propietario (Opcion A: no bloquea).
+  //    Se informa al usuario que su ticket fue aceptado y esta en atencion,
+  //    mencionando el nombre del agente, el del usuario y el numero de ticket.
+  //    Cualquier fallo se registra y NO afecta la aceptacion ya realizada.
+  // -------------------------------------------------------
+  try {
+    const result = (data ?? {}) as Record<string, unknown>;
+    const ticketNumber = String(result.ticket_number ?? "");
+
+    // Obtener el usuario propietario del ticket y el nombre del agente.
+    const { data: ticketRow } = await supabaseAdmin
+      .from("tickets")
+      .select("user_id")
+      .eq("id", ticketId)
+      .single();
+
+    const ownerId = ticketRow?.user_id;
+
+    if (ownerId) {
+      const [{ data: userProfile }, { data: agentProfile }] = await Promise.all([
+        supabaseAdmin
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", ownerId)
+          .single(),
+        supabaseAdmin
+          .from("profiles")
+          .select("full_name")
+          .eq("id", agentId)
+          .single(),
+      ]);
+
+      if (userProfile?.email) {
+        const html = buildTicketAcceptedEmailForUser({
+          userName: userProfile.full_name ?? "Usuario",
+          agentName: agentProfile?.full_name ?? "Agente",
+          ticketNumber,
+        });
+
+        const sent = await sendEmail(
+          userProfile.email,
+          `Tu ticket ${ticketNumber} esta en atencion`,
+          html,
+        );
+
+        if (!sent) {
+          console.error(
+            `[update-ticket-status] No se pudo enviar el correo al usuario para el ticket ${ticketNumber}.`,
+          );
+        }
+      } else {
+        console.error(
+          "[update-ticket-status] El usuario propietario no tiene correo; se omite la notificacion.",
+        );
+      }
+    }
+  } catch (emailError) {
+    // Opcion A: el fallo del correo no interrumpe la aceptacion del ticket.
+    console.error(
+      "[update-ticket-status] Error inesperado al enviar el correo de notificacion:",
+      emailError,
+    );
+  }
+
+  // -------------------------------------------------------
+  // 10. Retornar respuesta exitosa con los datos actualizados
   // -------------------------------------------------------
   return new Response(
     JSON.stringify({
