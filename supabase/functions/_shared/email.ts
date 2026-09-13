@@ -262,14 +262,16 @@ export function buildNewTicketEmailForAgent(params: {
  */
 export function buildTicketAcceptedEmailForUser(params: {
   userName: string;
-  agentName: string;
+  // agentName se conserva en el tipo por compatibilidad con las llamadas
+  // existentes, aunque el contenido ahora referencia al Equipo de Soporte.
+  agentName?: string;
   ticketNumber: string;
 }): string {
-  const { userName, agentName, ticketNumber } = params;
+  const { userName, ticketNumber } = params;
 
   const content = `
 <p style="margin:0 0 16px 0;color:${COLOR_TEXT};font-size:15px;line-height:1.6;">
-  Hola ${escapeHtml(userName)}, te informamos que tu ticket <strong>${escapeHtml(ticketNumber)}</strong> ha sido aceptado por el agente <strong>${escapeHtml(agentName)}</strong> y actualmente se encuentra en atención.
+  Estimado (a) ${escapeHtml(userName)}, te informamos que tu ticket <strong>${escapeHtml(ticketNumber)}</strong> ha sido aceptado por el Equipo de Soporte y actualmente se encuentra en atención.
 </p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
   <tr>
@@ -280,8 +282,58 @@ export function buildTicketAcceptedEmailForUser(params: {
 </table>
 <p style="margin:0;color:#64748b;font-size:13px;line-height:1.6;">
   Numero de ticket: <strong>${escapeHtml(ticketNumber)}</strong><br />
-  Agente que atiende: <strong>${escapeHtml(agentName)}</strong>
+  Equipo de Soporte: <strong>Soluciones Tenería</strong>
 </p>`;
 
   return baseLayout("Tu ticket está en atención", content);
+}
+
+/**
+ * Plantilla: ticket resuelto para el Usuario.
+ * Notifica que el agente marco el ticket como RESUELTO. Incluye los detalles
+ * del ticket, el comentario/solucion aplicada por el agente y el texto de
+ * cierre solicitado (el ticket quedara finalizado si no hay respuesta).
+ */
+export function buildTicketResolvedEmailForUser(params: {
+  userName: string;
+  ticketNumber: string;
+  solucionAplicada: string;
+  ticket: TicketEmailData;
+}): string {
+  const { userName, ticketNumber, solucionAplicada, ticket } = params;
+
+  const detalles = [
+    detailRow("Numero de ticket", ticket.ticket_number),
+    detailRow("Area", ticket.area),
+    detailRow("Tipo de asistencia", ticket.tipo_asistencia),
+    detailRow("Categoria", ticket.categoria),
+    detailRow("Subcategoria", ticket.subcategoria),
+    detailRow("Estado", ticket.estado),
+    detailRow("Status", ticket.status),
+    detailRow("Descripcion del problema", ticket.descripcion),
+    detailRow("Solucion aplicada", solucionAplicada),
+  ].join("");
+
+  const content = `
+<p style="margin:0 0 16px 0;color:${COLOR_TEXT};font-size:15px;line-height:1.6;">
+  Estimado ${escapeHtml(userName)}, nuestro representante de soporte ha indicado que su ticket <strong>${escapeHtml(ticketNumber)}</strong> ha sido resuelto. A continuación se muestran los detalles del ticket y los comentarios registrados al momento de su resolución:
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px 0;background-color:#f8fafc;border-radius:8px;overflow:hidden;">
+  ${detalles}
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
+  <tr>
+    <td style="background-color:#eff6ff;border-left:4px solid ${COLOR_PRIMARY};border-radius:6px;padding:14px 16px;color:${COLOR_TEXT};font-size:14px;line-height:1.6;">
+      Si cree que el ticket no ha sido resuelto, por favor genere un nuevo ticket para atender su solicitud.<br /><br />
+      Si no hay respuesta suya, asumiremos que el ticket se ha resuelto y el ticket quedará como finalizado.
+    </td>
+  </tr>
+</table>
+<p style="margin:0;color:${COLOR_TEXT};font-size:14px;line-height:1.6;">
+  Atte,<br />
+  <strong>Tickets de Soporte</strong><br />
+  Soluciones Teneria
+</p>`;
+
+  return baseLayout("Ticket " + escapeHtml(ticketNumber) + " Resuelto", content);
 }

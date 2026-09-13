@@ -37,6 +37,10 @@ import {
   rateLimitExceededResponse,
   RATE_LIMIT_API,
 } from "../_shared/rate-limiter.ts";
+import {
+  sendEmail,
+  buildTicketResolvedEmailForUser,
+} from "../_shared/email.ts";
 
 // ---------------------------------------------------------------------------
 // Constantes de validación
@@ -346,6 +350,76 @@ Deno.serve(async (req: Request): Promise<Response> => {
         status: httpStatus,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       },
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Notificacion por correo al usuario propietario (Opcion A: no bloquea).
+  // Informa que el ticket fue marcado como RESUELTO e incluye los detalles del
+  // ticket y la solucion aplicada por el agente. Cualquier fallo se registra y
+  // NO afecta la resolucion ya realizada.
+  // -------------------------------------------------------------------------
+  try {
+    const result = (data ?? {}) as Record<string, unknown>;
+    const ticketNumber = String(result.ticket_number ?? "");
+
+    // Obtener los datos completos del ticket y el usuario propietario.
+    const { data: ticketRow } = await supabaseAdmin
+      .from("tickets")
+      .select(
+        "user_id, area, tipo_asistencia, categoria, subcategoria, descripcion",
+      )
+      .eq("id", ticketId)
+      .single();
+
+    const ownerId = ticketRow?.user_id;
+
+    if (ownerId) {
+      const { data: userProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", ownerId)
+        .single();
+
+      if (userProfile?.email) {
+        const html = buildTicketResolvedEmailForUser({
+          userName: userProfile.full_name ?? "Usuario",
+          ticketNumber,
+          solucionAplicada: solucionSanitizada,
+          ticket: {
+            ticket_number: ticketNumber,
+            area: String(ticketRow?.area ?? ""),
+            tipo_asistencia: String(ticketRow?.tipo_asistencia ?? ""),
+            categoria: String(ticketRow?.categoria ?? ""),
+            subcategoria: String(ticketRow?.subcategoria ?? ""),
+            descripcion: String(ticketRow?.descripcion ?? ""),
+            estado: "TICKET RESUELTO",
+            status: "Finalizado",
+          },
+        });
+
+        const sent = await sendEmail(
+          userProfile.email,
+          `Ticket ${ticketNumber} Resuelto`,
+          html,
+        );
+
+        if (!sent) {
+          console.error(
+            `[resolve-ticket] No se pudo enviar el correo al usuario para el ticket ${ticketNumber}.`,
+          );
+        }
+      } else {
+        console.error(
+          "[resolve-ticket] El usuario propietario no tiene correo; se omite la notificacion.",
+        );
+      }
+    }
+  } catch (emailError) {
+    // Opcion A: el fallo del correo no interrumpe la resolucion del ticket.
+    console.error(
+      "[resolve-ticket] Error inesperado al enviar el correo de notificacion:",
+      emailError,
     );
   }
 
