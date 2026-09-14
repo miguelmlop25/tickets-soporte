@@ -26,6 +26,7 @@ import { loginWithRole, renderLoginForm, ROLE_PANEL_ROUTES } from '../auth/login
 import { registerUser } from '../auth/register.js';
 import { validateEmail, validatePassword } from '../modules/validators.js';
 import { showToast } from '../modules/ui-dialogs.js';
+import { attachPasswordToggles } from '../modules/password-toggle.js';
 
 // ---------------------------------------------------------------------------
 // Constantes
@@ -498,6 +499,12 @@ function init() {
   passwordRecoverySection = document.getElementById('password-recovery');
   passwordRecoveryForm = document.getElementById('password-recovery-form');
   recoveryMessageBox = document.getElementById('recovery-message');
+
+  // Control de mostrar/ocultar (ojo) en los campos de contrasena estaticos:
+  // registro (contrasena y confirmacion) y restablecimiento de contrasena.
+  // El campo de contrasena del login se decora al generarse en renderLoginForm().
+  attachPasswordToggles(registerForm);
+  attachPasswordToggles(passwordRecoveryForm);
 
   // Botones de selección de rol.
   roleSelectionSection.querySelectorAll('.role-selector__btn').forEach((btn) => {

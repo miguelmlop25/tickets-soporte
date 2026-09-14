@@ -361,6 +361,51 @@
   outline: none;
 }
 
+/* --- Campo de contrasena con boton mostrar/ocultar (ojo) ---
+   .password-field envuelve al input y posiciona el boton del ojo sobre el
+   borde derecho. Aplica tanto al login dinamico (.login-form__input) como a
+   los campos estaticos de registro y recuperacion (.form-control). Es un
+   ajuste puramente visual para mejorar la experiencia del usuario. */
+.password-field {
+  position: relative;
+  display: block;
+}
+
+/* Reserva espacio a la derecha para que el texto no quede bajo el boton. */
+.password-field__input {
+  padding-right: 2.75rem;
+}
+
+/* Boton del ojo: transparente, centrado verticalmente dentro del campo. */
+.password-field__toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.password-field__toggle:hover {
+  color: var(--color-primary);
+}
+
+.password-field__toggle:focus-visible {
+  outline: none;
+  color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 139, 209, 0.25);
+}
+
 /* Mensaje de error de autenticación (role="alert") */
 .login-form__error {
   margin: 0 0 var(--space-md);

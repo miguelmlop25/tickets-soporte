@@ -20,6 +20,7 @@
 
 import { supabase } from '../config.js';
 import { validateEmail } from '../modules/validators.js';
+import { attachPasswordToggle } from '../modules/password-toggle.js';
 
 // ---------------------------------------------------------------------------
 // Constantes
@@ -296,17 +297,18 @@ export function renderLoginForm(role) {
     }),
   );
 
-  // Campo: contraseña.
-  form.appendChild(
-    buildField({
-      id: `login-password-${safeRole}`,
-      name: 'password',
-      type: 'password',
-      label: 'Contraseña',
-      autocomplete: 'current-password',
-      placeholder: '',
-    }),
-  );
+  // Campo: contraseña. Se conserva la referencia al grupo para agregar el
+  // control de mostrar/ocultar (ojo) sobre su input, mejorando la experiencia.
+  const passwordField = buildField({
+    id: `login-password-${safeRole}`,
+    name: 'password',
+    type: 'password',
+    label: 'Contraseña',
+    autocomplete: 'current-password',
+    placeholder: '',
+  });
+  form.appendChild(passwordField);
+  attachPasswordToggle(passwordField.querySelector('input'));
 
   // Contenedor para mensajes de error de autenticación (accesible).
   const errorBox = document.createElement('p');
