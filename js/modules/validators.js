@@ -122,20 +122,9 @@ export const SUBCATEGORIAS = {
 /** Áreas válidas para el campo 'area' del ticket (Requisito 4.2.1). */
 export const VALID_AREAS = [
   'Administracion',
-  'Auditoria',
-  'Auditoria IMSS',
-  'BPO Others',
   'Consultoria',
-  'Contabilidad',
-  'Eduacion Continua',
   'General',
-  'Impuestos',
-  'Mercadotecnia',
-  'Nominas',
-  'Precios T',
-  'RH',
   'Sistemas TI',
-  'SOCIOS',
 ];
 
 /** Tipos de asistencia válidos (Requisito 4.2.2). */
@@ -143,7 +132,6 @@ export const VALID_TIPOS_ASISTENCIA = [
   'Asistencia remota',
   'Correo',
   'Llamada',
-  'Presencial',
 ];
 
 /** Categorías válidas (Requisito 4.2.3). */

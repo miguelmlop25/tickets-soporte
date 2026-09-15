@@ -113,20 +113,9 @@ const SUBCATEGORIAS: Record<string, string[]> = {
 /** Áreas válidas para el campo 'area' del ticket */
 const VALID_AREAS = new Set([
   "Administracion",
-  "Auditoria",
-  "Auditoria IMSS",
-  "BPO Others",
   "Consultoria",
-  "Contabilidad",
-  "Eduacion Continua",
   "General",
-  "Impuestos",
-  "Mercadotecnia",
-  "Nominas",
-  "Precios T",
-  "RH",
   "Sistemas TI",
-  "SOCIOS",
 ]);
 
 /** Tipos de asistencia válidos */
@@ -134,7 +123,6 @@ const VALID_TIPOS_ASISTENCIA = new Set([
   "Asistencia remota",
   "Correo",
   "Llamada",
-  "Presencial",
 ]);
 
 /** Categorías válidas */
