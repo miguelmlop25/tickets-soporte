@@ -537,7 +537,7 @@ textarea.form-control {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   line-height: 1.2;
   white-space: nowrap;
   border: 1px solid transparent;
@@ -548,40 +548,40 @@ textarea.form-control {
 .badge--pendiente {
   background-color: var(--color-warning-bg);
   color: var(--color-warning);
-  border-color: rgba(180, 83, 9, 0.3);
+  border-color: var(--color-warning-bg);
 }
 
 .badge-status-en-proceso,
 .badge--en-proceso {
   background-color: var(--color-info-bg);
   color: var(--color-info);
-  border-color: rgba(29, 78, 216, 0.3);
+  border-color: var(--color-info-bg);
 }
 
 .badge-status-finalizado,
 .badge--finalizado {
   background-color: var(--color-success-bg);
   color: var(--color-success);
-  border-color: rgba(21, 128, 61, 0.3);
+  border-color: var(--color-success-bg);
 }
 
 /* Estado del ticket: TICKET PENDIENTE, TICKET ACEPTADO, TICKET RESUELTO */
 .badge-estado-pendiente {
   background-color: var(--color-warning-bg);
   color: var(--color-warning);
-  border-color: rgba(180, 83, 9, 0.3);
+  border-color: var(--color-warning-bg);
 }
 
 .badge-estado-aceptado {
   background-color: var(--color-info-bg);
   color: var(--color-info);
-  border-color: rgba(29, 78, 216, 0.3);
+  border-color: var(--color-info-bg);
 }
 
 .badge-estado-resuelto {
   background-color: var(--color-success-bg);
   color: var(--color-success);
-  border-color: rgba(21, 128, 61, 0.3);
+  border-color: var(--color-success-bg);
 }
 
 /* Badge de status usado por el panel de Admin (admin-panel.js) */
@@ -590,7 +590,7 @@ textarea.form-control {
   padding: var(--space-xs) var(--space-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   line-height: 1.2;
   white-space: nowrap;
   border: 1px solid transparent;
@@ -601,19 +601,19 @@ textarea.form-control {
 .status-badge--pendiente {
   background-color: var(--color-warning-bg);
   color: var(--color-warning);
-  border-color: rgba(180, 83, 9, 0.3);
+  border-color: var(--color-warning-bg);
 }
 
 .status-badge--en-proceso {
   background-color: var(--color-info-bg);
   color: var(--color-info);
-  border-color: rgba(29, 78, 216, 0.3);
+  border-color: var(--color-info-bg);
 }
 
 .status-badge--finalizado {
   background-color: var(--color-success-bg);
   color: var(--color-success);
-  border-color: rgba(21, 128, 61, 0.3);
+  border-color: var(--color-success-bg);
 }
 
 /* -------------------------------------------------------------
