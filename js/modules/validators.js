@@ -27,7 +27,7 @@
  * del backend (trigger handle_new_user, migracion 007) debe reflejar los mismos
  * dominios para mantener la coherencia entre cliente y servidor.
  */
-export const CORPORATE_DOMAINS = ['@solucionesteneria.com', '@rbpuebla.mx'];
+export const CORPORATE_DOMAINS = ['@solucionesteneria.com', '@rbpuebla.mx', '@russellbedford.mx'];
 
 /**
  * Dominio corporativo principal. Se conserva por compatibilidad con codigo que

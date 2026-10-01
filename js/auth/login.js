@@ -293,7 +293,7 @@ export function renderLoginForm(role) {
       type: 'email',
       label: 'Correo corporativo',
       autocomplete: 'email',
-      placeholder: 'usuario@solucionesteneria.com',
+      placeholder: 'usuario@solucionesteneria.com / @rbpuebla.mx / @russellbedford.mx',
     }),
   );
 

@@ -38,7 +38,7 @@ DECLARE
   v_role      user_role;
   -- Dominios corporativos permitidos. Deben coincidir con CORPORATE_DOMAINS
   -- del frontend (js/modules/validators.js). Editar esta lista al actualizar.
-  v_dominios_permitidos TEXT[] := ARRAY['@solucionesteneria.com', '@rbpuebla.mx'];
+  v_dominios_permitidos TEXT[] := ARRAY['@solucionesteneria.com', '@rbpuebla.mx', '@russellbedford.mx'];
   v_email_lower TEXT := lower(NEW.email);
   v_dominio_ok  BOOLEAN := FALSE;
   v_dominio     TEXT;
