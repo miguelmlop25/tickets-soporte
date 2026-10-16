@@ -460,9 +460,12 @@ async function handleResolveSubmit(event) {
     // Error del backend: se muestra en el feedback del detalle.
     showFeedback(detailFeedbackEl, result.error, 'danger');
   } finally {
-    if (!detailOverlayEl.hidden) {
-      resolveBtnEl.disabled = false;
-    }
+    // Se rehabilita siempre para que el boton quede limpio la proxima vez
+    // que se abra el formulario de resolucion. La condicion anterior
+    // (if !detailOverlayEl.hidden) dejaba el boton deshabilitado de forma
+    // permanente tras una resolucion exitosa, impidiendo resolver tickets
+    // subsiguientes sin cerrar sesion.
+    resolveBtnEl.disabled = false;
   }
 }
 
